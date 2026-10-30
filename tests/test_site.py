@@ -1,0 +1,75 @@
+"""اختبار وظيفي: الصوت (بمحرك نطق محاكى) والتنقل بالأسهم والنوافذ والجوال.
+التشغيل:  python3 tests/test_site.py index.html out tests/mock-speech.js
+"""
+import os
+import sys
+from playwright.sync_api import sync_playwright
+P="file://"+os.path.abspath(sys.argv[1]); OUT=sys.argv[2]; os.makedirs(OUT,exist_ok=True); MOCK=open(sys.argv[3]).read()
+errs=[]
+def ok(c,m): print(("PASS " if c else "FAIL ")+m)
+with sync_playwright() as p:
+    b=p.chromium.launch(); ctx=b.new_context(viewport={"width":1366,"height":800}); ctx.add_init_script(MOCK)
+    pg=ctx.new_page(); pg.on("pageerror",lambda e:errs.append(str(e)))
+    pg.goto(P); pg.wait_for_timeout(900)
+    ok(not any(x.startswith("speak") for x in pg.evaluate("__log")),"no autoplay on load")
+    pg.screenshot(path=OUT+"/r0.png")
+    pg.keyboard.press("ArrowLeft"); pg.wait_for_timeout(1200); pg.screenshot(path=OUT+"/r1.png")
+    pg.keyboard.press("Enter"); pg.wait_for_timeout(500)
+    ok(pg.inner_text("#winTitle")=="صلاة الظهر","dhuhr opened")
+    ok(not any(x.startswith("speak") for x in pg.evaluate("__log")),"no autoplay on open")
+    ok(pg.is_enabled(".a-play"),"listen enabled")
+    pg.click(".a-play"); pg.wait_for_timeout(450)
+    ok(pg.evaluate("__speaking"),"speaking after click")
+    w=pg.evaluate("document.querySelector('.a-prog i').style.width"); ok(w not in ("","0%"),"progress moves: "+w)
+    ok(pg.query_selector(".transcript span.now") is not None,"current sentence highlighted")
+    pg.screenshot(path=OUT+"/r2.png")
+    pg.click(".a-pause"); pg.wait_for_timeout(200)
+    ok(not pg.evaluate("__speaking") and "متابعة" in pg.inner_text(".a-play"),"pause works")
+    pg.click(".a-play"); pg.wait_for_timeout(400); ok(pg.evaluate("__speaking"),"resume works")
+    pg.keyboard.press("m"); pg.wait_for_timeout(200)
+    ok(not pg.evaluate("__speaking"),"M mutes immediately")
+    ok(pg.get_attribute(".audio [data-mute]","aria-pressed")=="false" and not pg.is_enabled(".a-play"),"mute UI + play disabled")
+    pg.click("#winNext"); pg.wait_for_timeout(500)
+    ok(pg.inner_text("#winTitle")=="صلاة العصر" and not pg.is_enabled(".a-play"),"mute persists to next window")
+    pg.click(".audio [data-mute]"); pg.wait_for_timeout(200)
+    ok(pg.is_enabled(".a-play"),"unmute in window")
+    pg.click(".a-play"); pg.wait_for_timeout(400); ok(pg.evaluate("__speaking"),"asr speaking")
+    pg.click("#winNext"); pg.wait_for_timeout(500)
+    ok(not pg.evaluate("__speaking") and pg.inner_text("#winTitle")=="صلاة المغرب","stops on next station")
+    pg.click(".a-play"); pg.wait_for_timeout(400); pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
+    ok(not pg.evaluate("__speaking") and not pg.is_visible("#backdrop"),"stops on Esc close")
+    pg.keyboard.press("Enter"); pg.wait_for_timeout(400); pg.click(".a-play"); pg.wait_for_timeout(400); pg.click("#winClose"); pg.wait_for_timeout(300)
+    ok(not pg.evaluate("__speaking"),"stops on × close")
+    pg.keyboard.press("Enter"); pg.wait_for_timeout(400); pg.click(".a-play"); pg.wait_for_timeout(400); pg.click("#winBack"); pg.wait_for_timeout(300)
+    ok(not pg.evaluate("__speaking"),"stops on back-to-road")
+    # let a whole narration finish
+    pg.keyboard.press("Enter"); pg.wait_for_timeout(400); pg.click(".a-play"); pg.wait_for_timeout(2600)
+    ok("اكتمل" in pg.inner_text(".a-state"),"narration completes: "+pg.inner_text(".a-state"))
+    pg.click(".a-replay"); pg.wait_for_timeout(400); ok(pg.evaluate("__speaking"),"replay works")
+    pg.keyboard.press("Escape"); pg.wait_for_timeout(300)
+    # mute persists across reload
+    pg.keyboard.press("m"); pg.wait_for_timeout(100); pg.reload(); pg.wait_for_timeout(800)
+    ok(pg.get_attribute("header [data-mute]","aria-pressed")=="false","mute persists after reload")
+    pg.keyboard.press("m")
+    # arrows still navigate all stations, open each
+    for i in range(8):
+        pg.keyboard.press("ArrowLeft"); pg.wait_for_timeout(250)
+    ok(pg.inner_text("#capName")=="نهاية الرحلة","arrows reach end")
+    pg.wait_for_timeout(1200); pg.screenshot(path=OUT+"/r3.png")
+    for i in range(8): pg.keyboard.press("ArrowRight"); pg.wait_for_timeout(120)
+    ok(pg.inner_text("#capName")=="نقطة الانطلاق","arrows back to start")
+    print("scroll:",pg.evaluate("[scrollX,scrollY]"))
+    pg.keyboard.press("Enter"); pg.wait_for_timeout(400)
+    for k in range(9):
+        pg.screenshot(path=f"{OUT}/x{k}.png")
+        if k<8: pg.click("#winNext"); pg.wait_for_timeout(500)
+    # no-voice case
+    ctx2=b.new_context(viewport={"width":390,"height":800},is_mobile=True,has_touch=True)
+    m=ctx2.new_page(); m.on("pageerror",lambda e:errs.append("M:"+str(e)))
+    m.goto(P); m.wait_for_timeout(800); m.screenshot(path=OUT+"/n0.png")
+    m.tap(".pad .next"); m.wait_for_timeout(1200); m.tap(".pad .enter"); m.wait_for_timeout(500)
+    print("no-voice note:",m.inner_text(".a-note"))
+    m.screenshot(path=OUT+"/n1.png")
+    print("mobile overflow:",m.evaluate("[document.documentElement.scrollWidth,innerWidth]"))
+    print("errors:",errs)
+    b.close()
