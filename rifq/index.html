@@ -63,8 +63,8 @@ html,body{height:100%;background:#1c1418;overflow:hidden}
 @keyframes fade{0%{opacity:0}100%{opacity:1}}
 
 /* الصفحة 1 */
-.logoBig{height:160px;margin-bottom:20px;animation:pop .7s}
-.logoBig img,.c-logo img,.wm img{height:100%;width:auto;display:block}
+.logoBig{height:180px;margin-bottom:16px;animation:pop .7s}
+.logoBig img,.c-logo img,.wm img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(30,15,25,.35))}
 .rifq{font-family:"Kufi";font-weight:800;font-size:250px;line-height:1.25;animation:reveal 1s cubic-bezier(.3,.8,.2,1)}
 @keyframes reveal{0%{clip-path:inset(0 0 0 100%);transform:scale(1.15);opacity:.2}100%{clip-path:inset(0 0 0 0);transform:none;opacity:1}}
 .rifq-line{width:520px;height:6px;border-radius:6px;margin:4px 0 40px;background:linear-gradient(90deg,transparent,var(--gold),var(--cream),var(--gold),transparent);animation:grow .8s ease-out}
@@ -101,12 +101,12 @@ html,body{height:100%;background:#1c1418;overflow:hidden}
 .heartline svg{width:54px;height:48px;animation:beat 1.2s ease-in-out infinite}
 
 /* الصفحة 4 */
-.c-logo{height:150px;margin-bottom:34px;animation:pop .6s}
+.c-logo{height:210px;margin-bottom:34px;animation:pop .6s}
 .c1{font-family:"Kufi";font-weight:600;font-size:64px;color:#6e4f66}
 .c-sep{width:380px;height:4px;margin:30px 0;border-radius:4px;background:linear-gradient(90deg,transparent,#b89a6a,transparent);animation:grow .7s ease-out}
 .c2{font-family:"Kufi";font-weight:800;font-size:104px}
 
-.wm{position:absolute;top:40px;left:56px;height:110px;z-index:3}
+.wm{position:absolute;top:36px;left:48px;height:120px;z-index:3;opacity:0;animation:fade .5s,off .3s}
 
 /* الدمج بين الصفحات */
 .goo{position:absolute;inset:0;width:1920px;height:1080px;z-index:4;pointer-events:none}
@@ -257,7 +257,7 @@ body.nologo .logoBig,body.nologo .c-logo,body.nologo .wm{display:none}
     </div></div>
   </section>
 
-  <div class="wm"><img class="logo" alt=""></div>
+  <div class="wm" data-at="S1+0.3,T3" data-fill="both,forwards"><img class="logo" alt=""></div>
 </div></div>
 
 <div id="start"><div>▶ تشغيل</div></div>
