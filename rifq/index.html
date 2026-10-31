@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معًا نواجه العنف</title>
+<style>
+@font-face{font-family:"Kufi";src:url(fonts/kufi-ar.woff2) format("woff2");font-weight:100 900;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Kufi";src:url(fonts/kufi-la.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:"Plex";src:url(fonts/plex-500-ar.woff2) format("woff2");font-weight:500;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Plex";src:url(fonts/plex-500-la.woff2) format("woff2");font-weight:500}
+@font-face{font-family:"Plex";src:url(fonts/plex-600-ar.woff2) format("woff2");font-weight:600;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Plex";src:url(fonts/plex-600-la.woff2) format("woff2");font-weight:600}
+
+:root{
+  --cream:#f6f0ea; --cream2:#efe5dd;
+  --mauve:#9b7b93; --mauve-soft:#e6d6de; --mauve-deep:#6e4f66;
+  --sage:#7f8f72; --sage-soft:#dde3d3; --sage-deep:#566549;
+  --plum:#4a2b3f; --gold:#b89a6a;
+  --ink:#5a4252;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#1c1418;overflow:hidden}
+body{display:grid;place-items:center;font-family:"Plex",sans-serif;color:var(--ink)}
+
+/* المسرح ثابت 1920×1080 ويُصغَّر ليناسب الشاشة */
+#wrap{position:fixed;inset:0;display:grid;place-items:center}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;flex:none;
+  background:radial-gradient(120% 90% at 50% 40%,var(--cream) 0%,var(--cream2) 100%);
+  transform-origin:center center}
+#stage *{animation-fill-mode:both;animation-play-state:paused}
+
+/* خلفية دائمة */
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+.b1{width:900px;height:700px;background:var(--mauve-soft);top:-260px;right:-200px}
+.b2{width:800px;height:600px;background:var(--sage-soft);bottom:-280px;left:-220px}
+.branch{position:absolute;width:420px;height:420px;opacity:.95}
+.br-tr{top:-30px;right:-40px;transform:rotate(180deg) scaleX(-1)}
+.br-bl{bottom:-80px;left:-80px;width:300px;height:300px}
+.br-tl{top:-40px;left:-60px;transform:rotate(90deg);width:300px;height:300px;opacity:.7}
+.br-br{bottom:-70px;right:-80px;transform:rotate(-90deg);width:240px;height:240px;opacity:.7}
+.wm{position:absolute;top:40px;left:56px;height:110px;opacity:.9}
+.wm img{height:100%;width:auto;display:block}
+
+/* المشاهد */
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0}
+
+/* الدخول والخروج: اندماج مفاجئ */
+@keyframes sceneIn{
+  0%{opacity:0;transform:scale(.9);filter:blur(16px);clip-path:circle(0% at 50% 50%)}
+  60%{opacity:1;filter:blur(3px)}
+  100%{opacity:1;transform:scale(1);filter:blur(0);clip-path:circle(150% at 50% 50%)}}
+@keyframes sceneOut{
+  0%{opacity:1;transform:scale(1);filter:blur(0)}
+  100%{opacity:0;transform:scale(1.18);filter:blur(18px)}}
+@keyframes flash{0%,100%{opacity:0}45%{opacity:.85}}
+.flash{position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 50%,#fff 0%,rgba(230,214,222,.9) 35%,rgba(246,240,234,0) 75%)}
+
+/* أدوات حركة عامة */
+@keyframes rise{0%{opacity:0;transform:translateY(40px);filter:blur(8px)}100%{opacity:1;transform:none;filter:blur(0)}}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes fade{0%{opacity:0}100%{opacity:1}}
+@keyframes draw{0%{stroke-dashoffset:var(--len)}100%{stroke-dashoffset:0}}
+@keyframes grow{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+
+/* المشهد 1: الرفق */
+.logoBig{height:170px;margin-bottom:26px;animation:pop .7s cubic-bezier(.2,.8,.2,1) 0s}
+.logoBig img{height:100%;width:auto;display:block}
+.rifq{font-family:"Kufi";font-weight:800;font-size:250px;line-height:1.25;color:var(--plum);
+  animation:rise .9s cubic-bezier(.2,.8,.2,1) .15s}
+.rifq-line{width:520px;height:6px;border-radius:6px;margin:6px 0 34px;
+  background:linear-gradient(90deg,transparent,var(--gold),var(--mauve),var(--gold),transparent);
+  animation:grow .8s ease-out .6s}
+.tag{font-family:"Kufi";font-weight:600;color:var(--mauve-deep);font-size:62px;line-height:1.6;text-align:center}
+.tag span{display:block}
+.tag .t1{animation:rise .6s ease-out .05s}
+.tag .t2{animation:rise .6s ease-out 2.3s;color:var(--sage-deep)}
+
+/* المشهد 2: معًا نواجه العنف */
+.head{position:relative;padding:14px 70px 22px;margin-bottom:76px;animation:rise .6s ease-out 4.62s}
+.head::before{content:"";position:absolute;inset:0;border-radius:60px;background:var(--mauve-soft);opacity:.85;
+  transform-origin:right;animation:grow .55s ease-out 4.62s}
+.head h2{position:relative;font-family:"Kufi";font-weight:800;font-size:96px;color:var(--plum);white-space:nowrap}
+.items{display:flex;gap:64px;align-items:flex-start}
+.item{width:290px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.disc{width:230px;height:230px;border-radius:50%;display:grid;place-items:center;position:relative}
+.disc.m{background:var(--mauve-soft)} .disc.g{background:var(--sage-soft)}
+.disc svg{width:170px;height:170px;overflow:visible}
+.disc .st{fill:none;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+.disc.m .st{stroke:var(--mauve-deep)} .disc.g .st{stroke:var(--sage-deep)}
+.label{margin-top:30px;font-family:"Kufi";font-weight:700;font-size:44px;line-height:1.45;color:var(--plum)}
+.leaf{margin-top:12px;width:46px;height:30px}
+.item>*{animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+
+/* 1 رفض: يد ثم دائرة محيطة */
+.i1 .disc{animation:pop .5s 6.9s}
+.i1 .hand{transform-origin:50% 60%;animation:pop .45s 7.05s}
+.i1 .ring{--len:290;stroke-dasharray:290;animation:draw .7s ease-out 7.45s;stroke:var(--mauve)!important;stroke-width:3.4!important}
+.i1 .label,.i1 .leaf{animation:rise .5s 7.15s}
+
+/* 2 حماية الحقوق: درع ثم صح ثم ينقلب */
+.i2 .disc{animation:pop .5s 9.38s}
+.i2 .shield-g{transform-origin:50% 50%;transform-box:view-box;animation:pop .4s 9.45s,flip .6s cubic-bezier(.5,0,.3,1) 10.25s}
+.i2 .check{--len:44;stroke-dasharray:44;animation:draw .3s ease-out 9.8s}
+@keyframes flip{0%{transform:perspective(500px) rotateY(0)}100%{transform:perspective(500px) rotateY(360deg)}}
+.i2 .label,.i2 .leaf{animation:rise .5s 9.55s}
+
+/* 3 تعزيز الوعي: واحد ثم اثنان */
+.i3 .disc{animation:pop .5s 11.0s}
+.i3 .p1{transform-origin:50% 60%;transform-box:view-box;animation:pop .4s 11.05s}
+.i3 .p2{transform-origin:20% 70%;transform-box:view-box;animation:pop .4s 11.45s}
+.i3 .p3{transform-origin:80% 70%;transform-box:view-box;animation:pop .4s 11.55s}
+.i3 .label,.i3 .leaf{animation:rise .5s 11.15s}
+
+/* 4 تعزيز العدالة: الميزان يتحرك */
+.i4 .disc{animation:pop .5s 12.44s}
+.i4 .scale{transform-origin:50% 50%;transform-box:view-box;animation:pop .4s 12.5s}
+.i4 .beam{transform-origin:50px 26px;animation:sway 1.6s ease-in-out 12.75s 6 alternate}
+@keyframes sway{0%{transform:rotate(-9deg)}100%{transform:rotate(9deg)}}
+.i4 .label,.i4 .leaf{animation:rise .5s 12.6s}
+
+/* 5 دعم الضحايا: اليدان ثم القلب */
+.i5 .disc{animation:pop .5s 14.22s}
+.i5 .hands{transform-origin:50% 80%;transform-box:view-box;animation:pop .4s 14.28s}
+.i5 .heart{transform-origin:50px 40px;animation:heartIn .45s 14.7s,beat .9s ease-in-out 15.15s 6}
+.i5 .heart path{fill:var(--mauve);stroke:var(--mauve-deep)}
+@keyframes heartIn{0%{opacity:0;transform:translateY(14px) scale(.2)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:none}}
+@keyframes beat{0%,100%{transform:scale(1)}30%{transform:scale(1.14)}55%{transform:scale(.97)}}
+.i5 .label,.i5 .leaf{animation:rise .5s 14.4s}
+
+/* المشهد 3: الخاتمة */
+.quote{font-family:"Kufi";font-weight:800;text-align:center;line-height:1.7}
+.q1{font-size:110px;color:var(--plum);animation:rise .7s ease-out 15.9s}
+.q2{font-size:110px;color:var(--mauve-deep);animation:rise .7s ease-out 17.9s}
+.heartline{display:flex;align-items:center;gap:22px;margin-top:30px;animation:fade .8s 18.3s}
+.heartline i{display:block;width:220px;height:3px;background:var(--mauve);border-radius:3px;opacity:.7}
+.heartline svg{width:54px;height:48px}
+
+/* المشهد 4: التحية */
+.c-logo{height:150px;margin-bottom:34px;animation:pop .6s 19.75s}
+.c-logo img{height:100%;width:auto;display:block}
+.c1{font-family:"Kufi";font-weight:600;font-size:64px;color:var(--mauve-deep);animation:rise .6s ease-out 19.85s}
+.c-sep{width:380px;height:4px;margin:30px 0;border-radius:4px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:grow .7s ease-out 20.3s}
+.c2{font-family:"Kufi";font-weight:800;font-size:104px;color:var(--plum);animation:rise .7s ease-out 20.5s}
+
+/* توقيت المشاهد */
+.s1{animation:fade .01s 0s,sceneOut .45s ease-in 4.4s;animation-fill-mode:both,forwards}
+.s2{animation:sceneIn .5s cubic-bezier(.2,.8,.2,1) 4.42s,sceneOut .45s ease-in 15.55s;animation-fill-mode:both,forwards}
+.s3{animation:sceneIn .5s cubic-bezier(.2,.8,.2,1) 15.57s,sceneOut .45s ease-in 19.4s;animation-fill-mode:both,forwards}
+.s4{animation:sceneIn .5s cubic-bezier(.2,.8,.2,1) 19.42s}
+#stage .s1,#stage .s2,#stage .s3,#stage .i2 .shield-g{animation-fill-mode:both,forwards}
+#stage .i5 .heart{animation-fill-mode:both,none}
+.f1{animation:flash .5s 4.4s} .f2{animation:flash .5s 15.55s} .f3{animation:flash .5s 19.4s}
+
+/* واجهة التشغيل (لا تظهر في الفيديو) */
+#ui{position:fixed;inset:auto 0 18px 0;display:flex;justify-content:center;gap:10px;z-index:5;font-family:"Plex"}
+#ui button,#ui label{font:600 16px "Plex";border:0;border-radius:999px;padding:10px 20px;cursor:pointer;
+  background:rgba(246,240,234,.92);color:var(--plum)}
+#ui input{display:none}
+#start{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(28,20,24,.55);cursor:pointer}
+#start div{font:800 34px "Kufi";color:var(--plum);background:var(--cream);padding:22px 48px;border-radius:999px}
+body.render #ui,body.render #start{display:none}
+body.nologo .logoBig,body.nologo .c-logo,body.nologo .wm{display:none}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="branchS" viewBox="0 0 200 200">
+        <path d="M10 195 C40 150 70 110 120 70 C140 52 160 40 190 30" fill="none" stroke="#7f8f72" stroke-width="2.2" stroke-linecap="round"/>
+        <g fill="#8d9c80">
+          <ellipse cx="42" cy="150" rx="22" ry="8" transform="rotate(-60 42 150)"/>
+          <ellipse cx="62" cy="150" rx="20" ry="7" transform="rotate(20 62 150)" fill="#a3b096"/>
+          <ellipse cx="76" cy="112" rx="22" ry="8" transform="rotate(-55 76 112)"/>
+          <ellipse cx="98" cy="112" rx="20" ry="7" transform="rotate(15 98 112)" fill="#a3b096"/>
+          <ellipse cx="118" cy="78" rx="20" ry="7" transform="rotate(-50 118 78)"/>
+          <ellipse cx="140" cy="78" rx="18" ry="6.5" transform="rotate(10 140 78)" fill="#a3b096"/>
+          <ellipse cx="166" cy="48" rx="16" ry="6" transform="rotate(-30 166 48)"/>
+        </g>
+        <g fill="#fffaf6" stroke="#e6d6de" stroke-width="1">
+          <g transform="translate(28 128)"><circle r="6" cx="0" cy="-7"/><circle r="6" cx="7" cy="-2"/><circle r="6" cx="4" cy="6"/><circle r="6" cx="-4" cy="6"/><circle r="6" cx="-7" cy="-2"/><circle r="2.6" fill="#d9b98c" stroke="none"/></g>
+          <g transform="translate(150 94) scale(.8)"><circle r="6" cx="0" cy="-7"/><circle r="6" cx="7" cy="-2"/><circle r="6" cx="4" cy="6"/><circle r="6" cx="-4" cy="6"/><circle r="6" cx="-7" cy="-2"/><circle r="2.6" fill="#d9b98c" stroke="none"/></g>
+        </g>
+      </symbol>
+      <symbol id="leafS" viewBox="0 0 46 30">
+        <path d="M23 28 V12" stroke="#7f8f72" stroke-width="2" stroke-linecap="round"/>
+        <path d="M23 18 C14 18 8 12 6 4 C15 4 21 9 23 18Z M23 18 C32 18 38 12 40 4 C31 4 25 9 23 18Z" fill="#8d9c80"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <svg class="branch br-tr"><use href="#branchS"/></svg>
+  <svg class="branch br-bl"><use href="#branchS"/></svg>
+  <svg class="branch br-tl"><use href="#branchS"/></svg>
+  <svg class="branch br-br"><use href="#branchS"/></svg>
+  <div class="wm"><img class="logo" alt=""></div>
+
+  <!-- 1: الرفق -->
+  <section class="scene s1">
+    <div class="logoBig"><img class="logo" alt=""></div>
+    <div class="rifq">الرِّفْق</div>
+    <div class="rifq-line"></div>
+    <div class="tag">
+      <span class="t1">مَعًا لِمُجْتَمَعٍ</span>
+      <span class="t2">أَكْثَرَ أَمَانًا وَاحْتِرَامًا</span>
+    </div>
+  </section>
+
+  <!-- 2: معًا نواجه العنف -->
+  <section class="scene s2">
+    <div class="head"><h2>مَعًا .. نُوَاجِهُ العُنْفَ</h2></div>
+    <div class="items">
+      <div class="item i1">
+        <div class="disc m"><svg viewBox="0 0 100 100">
+          <circle class="st ring" cx="50" cy="50" r="46" transform="rotate(-90 50 50)"/>
+          <g class="hand"><path class="st" d="M36 56 V31 a4.5 4.5 0 0 1 9 0 V49 M45 48 V23 a4.5 4.5 0 0 1 9 0 V48 M54 48 V26 a4.5 4.5 0 0 1 9 0 V49 M63 50 V34 a4.5 4.5 0 0 1 9 0 V58 c0 14 -9 24 -21 24 c-8 0 -13 -4 -17 -10 l-9 -14 a4.5 4.5 0 0 1 7 -6 l5 6"/></g>
+        </svg></div>
+        <div class="label">رَفْضُ جَمِيعِ<br>أَشْكَالِ العُنْفِ</div>
+        <svg class="leaf"><use href="#leafS"/></svg>
+      </div>
+      <div class="item i2">
+        <div class="disc g"><svg viewBox="0 0 100 100">
+          <g class="shield-g">
+            <path class="st" d="M50 12 L80 24 V47 c0 19 -13 31 -30 40 c-17 -9 -30 -21 -30 -40 V24 Z"/>
+            <path class="st check" d="M36 50 l10 10 l19 -20"/>
+          </g>
+        </svg></div>
+        <div class="label">حِمَايَةُ<br>الحُقُوقِ</div>
+        <svg class="leaf"><use href="#leafS"/></svg>
+      </div>
+      <div class="item i3">
+        <div class="disc m"><svg viewBox="0 0 100 100">
+          <g class="p2"><circle class="st" cx="24" cy="40" r="7"/><path class="st" d="M10 72 c0 -10 6 -16 14 -16 c4 0 7 1.5 9 3.5"/></g>
+          <g class="p3"><circle class="st" cx="76" cy="40" r="7"/><path class="st" d="M90 72 c0 -10 -6 -16 -14 -16 c-4 0 -7 1.5 -9 3.5"/></g>
+          <g class="p1"><circle class="st" cx="50" cy="34" r="9"/><path class="st" d="M32 74 c0 -12 8 -20 18 -20 s18 8 18 20"/></g>
+        </svg></div>
+        <div class="label">تَعْزِيزُ<br>الوَعْيِ</div>
+        <svg class="leaf"><use href="#leafS"/></svg>
+      </div>
+      <div class="item i4">
+        <div class="disc g"><svg viewBox="0 0 100 100">
+          <g class="scale">
+            <circle class="st" cx="50" cy="17" r="3.5"/>
+            <path class="st" d="M50 21 V80 M34 82 H66 M40 82 c2 -4 6 -6 10 -6 s8 2 10 6"/>
+            <g class="beam">
+              <path class="st" d="M20 26 H80"/>
+              <path class="st" d="M22 26 L12 50 M22 26 L32 50 M10 50 H34 c-1 7 -6 10 -12 10 s-11 -3 -12 -10"/>
+              <path class="st" d="M78 26 L68 50 M78 26 L88 50 M66 50 H90 c-1 7 -6 10 -12 10 s-11 -3 -12 -10"/>
+            </g>
+          </g>
+        </svg></div>
+        <div class="label">تَعْزِيزُ<br>العَدَالَةِ</div>
+        <svg class="leaf"><use href="#leafS"/></svg>
+      </div>
+      <div class="item i5">
+        <div class="disc m"><svg viewBox="0 0 100 100">
+          <g class="hands">
+            <path class="st" d="M14 46 a4 4 0 0 1 8 0 V62 l9 8 a4 4 0 0 1 6 -5 l5 5 c3 3 4 6 4 10 V90 M14 46 V68 c0 5 2 8 6 11 l10 8 V92"/>
+            <path class="st" d="M86 46 a4 4 0 0 0 -8 0 V62 l-9 8 a4 4 0 0 0 -6 -5 l-5 5 c-3 3 -4 6 -4 10 V90 M86 46 V68 c0 5 -2 8 -6 11 l-10 8 V92"/>
+          </g>
+          <g class="heart"><path stroke-width="3" stroke-linejoin="round" d="M50 33 c-2.5 -6 -14 -7 -14 1.5 c0 7.5 14 15 14 15 s14 -7.5 14 -15 c0 -8.5 -11.5 -7.5 -14 -1.5 Z"/></g>
+        </svg></div>
+        <div class="label">دَعْمُ<br>الضَّحَايَا</div>
+        <svg class="leaf"><use href="#leafS"/></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3: الخاتمة -->
+  <section class="scene s3">
+    <div class="quote">
+      <div class="q1">العُنْفُ لَا يَبْنِي مُجْتَمَعَاتٍ ..</div>
+      <div class="q2">بَلْ يَهْدِمُ الأَحْلَامَ</div>
+    </div>
+    <div class="heartline"><i></i>
+      <svg viewBox="0 0 54 48"><path d="M27 12 c-4 -9 -22 -10 -22 3 c0 12 22 26 22 26 s22 -14 22 -26 c0 -13 -18 -12 -22 -3Z" fill="none" stroke="#9b7b93" stroke-width="3" stroke-linejoin="round"/></svg>
+    <i></i></div>
+  </section>
+
+  <!-- 4: التحية -->
+  <section class="scene s4">
+    <div class="c-logo"><img class="logo" alt=""></div>
+    <div class="c1">مَعَ تَحِيَّاتِ التَّوْجِيهِ الطُّلَّابِيِّ</div>
+    <div class="c-sep"></div>
+    <div class="c2">ابْتِدَائِيَّةُ حَلِيمَةَ السَّعْدِيَّةِ</div>
+  </section>
+
+  <div class="flash f1"></div><div class="flash f2"></div><div class="flash f3"></div>
+</div></div>
+
+<div id="start"><div>▶ تشغيل</div></div>
+<div id="ui">
+  <button id="play">⏸ إيقاف</button>
+  <button id="again">↺ من البداية</button>
+  <label>🖼 اختيار الشعار<input id="pick" type="file" accept="image/*"></label>
+</div>
+<audio id="voice" src="voice.mp3" preload="auto"></audio>
+
+<script>
+const TOTAL = 23.5;                       // مدة العرض كاملًا بالثواني (الصوت 19.5 + التحية)
+const stage = document.getElementById("stage");
+const audio = document.getElementById("voice");
+const params = new URLSearchParams(location.search);
+if (params.has("render")) document.body.classList.add("render");
+
+// الشعار: logo.png بجانب الصفحة، أو يُختار من الجهاز
+function setLogo(src) {
+  document.body.classList.remove("nologo");
+  document.querySelectorAll("img.logo").forEach(i => i.src = src);
+}
+const probe = new Image();
+probe.onload = () => setLogo("logo.png");
+probe.onerror = () => document.body.classList.add("nologo");
+probe.src = "logo.png";
+document.getElementById("pick").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = () => setLogo(r.result); r.readAsDataURL(f);
+};
+
+function fit() {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `scale(${s})`;
+}
+addEventListener("resize", fit); fit();
+
+// كل الحركات مثبّتة على زمن واحد، فتبقى متزامنة مع الصوت
+function seek(t) {
+  stage.getAnimations({ subtree: true }).forEach(a => { a.currentTime = t * 1000; });
+}
+window.seek = seek;
+seek(0);
+
+let t0 = null, playing = false, extra = 0;
+function tick() {
+  if (!playing) return;
+  let t = audio.ended || audio.currentTime >= audio.duration - 0.02
+    ? audio.duration + (performance.now() - (t0 ??= performance.now())) / 1000
+    : audio.currentTime;
+  seek(Math.min(t, TOTAL));
+  if (t >= TOTAL) { playing = false; document.getElementById("play").textContent = "▶ تشغيل"; return; }
+  requestAnimationFrame(tick);
+}
+function play(fromStart) {
+  if (fromStart) { audio.currentTime = 0; t0 = null; }
+  audio.play(); playing = true; document.getElementById("play").textContent = "⏸ إيقاف"; tick();
+}
+function pause() { audio.pause(); playing = false; document.getElementById("play").textContent = "▶ تشغيل"; }
+document.getElementById("start").onclick = e => { e.currentTarget.remove(); play(true); };
+document.getElementById("play").onclick = () => {
+  if (playing) pause(); else play(audio.ended || t0 !== null);
+};
+document.getElementById("again").onclick = () => play(true);
+</script>
+</body>
+</html>
