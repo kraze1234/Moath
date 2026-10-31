@@ -46,14 +46,15 @@ html,body{height:100%;background:#1c1418;overflow:hidden}
 .br-bl{bottom:-80px;left:-80px;width:310px;height:310px}
 .br-tl{top:-40px;left:-60px;width:280px;height:280px;transform:rotate(90deg);opacity:.75}
 .br-br{bottom:-70px;right:-80px;width:250px;height:250px;transform:rotate(-90deg);opacity:.75}
-.dots i{position:absolute;bottom:-20px;border-radius:50%;background:var(--fg);opacity:0;animation:floatUp linear infinite}
-@keyframes floatUp{0%{transform:translateY(0);opacity:0}15%{opacity:.35}85%{opacity:.25}100%{transform:translateY(-1150px);opacity:0}}
+.dots i{position:absolute;bottom:-20px;border-radius:50%;background:#e8cf96;box-shadow:0 0 10px 2px rgba(232,207,150,.55);opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(0);opacity:0}15%{opacity:.75}85%{opacity:.5}100%{transform:translateY(-1150px);opacity:0}}
 
 /* ظهور الكلمات وتلوين المنطوق */
 .w{display:inline-block;animation:wordIn .55s cubic-bezier(.2,.9,.25,1.2)}
 @keyframes wordIn{0%{opacity:0;transform:translateY(34px) scale(.8);filter:blur(6px)}100%{opacity:1;transform:none;filter:blur(0)}}
 .say{position:relative;display:inline-block;isolation:isolate}
-.hl{position:absolute;inset:-4px -26px 0;border-radius:28px;background:var(--hi);z-index:-1;transform-origin:right center}
+.hl{position:absolute;inset:-2px -14px 2px;border-radius:22px;background:var(--hi);z-index:-1;transform-origin:right center;
+  box-shadow:inset 0 -4px 0 rgba(217,191,143,.85),0 8px 24px rgba(0,0,0,.12)}
 @keyframes sweep{0%{transform:scaleX(0);opacity:1}12%{opacity:1}100%{transform:scaleX(1);opacity:1}}
 @keyframes hlOff{0%{opacity:1}100%{opacity:0}}
 
@@ -65,19 +66,19 @@ html,body{height:100%;background:#1c1418;overflow:hidden}
 /* الصفحة 1 */
 .logoBig{height:180px;margin-bottom:16px;animation:pop .7s}
 .logoBig img,.c-logo img,.wm img{height:100%;width:auto;display:block;filter:drop-shadow(0 10px 24px rgba(30,15,25,.35))}
-.rifq{font-family:"Kufi";font-weight:800;font-size:250px;line-height:1.25;animation:reveal 1s cubic-bezier(.3,.8,.2,1)}
+.rifq{font-family:"Kufi";font-weight:800;font-size:250px;line-height:1.25;text-shadow:0 10px 50px rgba(0,0,0,.2);animation:reveal 1s cubic-bezier(.3,.8,.2,1)}
 @keyframes reveal{0%{clip-path:inset(0 0 0 100%);transform:scale(1.15);opacity:.2}100%{clip-path:inset(0 0 0 0);transform:none;opacity:1}}
 .rifq-line{width:520px;height:6px;border-radius:6px;margin:4px 0 40px;background:linear-gradient(90deg,transparent,var(--gold),var(--cream),var(--gold),transparent);animation:grow .8s ease-out}
 .tag{font-family:"Kufi";font-weight:700;font-size:64px;line-height:1.75;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 
 /* الصفحة 2 */
-.head{font-family:"Kufi";font-weight:800;font-size:96px;white-space:nowrap;margin-bottom:80px}
+.head{font-family:"Kufi";font-weight:800;font-size:96px;white-space:nowrap;margin-bottom:80px;text-shadow:0 6px 30px rgba(0,0,0,.18)}
 .items{display:flex;gap:64px;align-items:flex-start}
 .item{width:290px;display:flex;flex-direction:column;align-items:center;text-align:center}
 .disc{width:230px;height:230px;border-radius:50%;display:grid;place-items:center;background:var(--soft);
-  box-shadow:0 18px 40px rgba(40,50,30,.28),inset 0 0 0 3px rgba(251,245,240,.25);animation:pop .5s,lit 1s ease}
-@keyframes lit{0%,100%{background:var(--soft);box-shadow:0 18px 40px rgba(40,50,30,.28),inset 0 0 0 3px rgba(251,245,240,.25)}
-  10%,88%{background:var(--hi);box-shadow:0 22px 50px rgba(40,50,30,.35),0 0 0 12px rgba(251,245,240,.18),inset 0 0 0 3px rgba(251,245,240,.6)}}
+  box-shadow:0 18px 40px rgba(40,50,30,.28),inset 0 0 0 3px rgba(217,191,143,.7);animation:pop .5s,lit 1s ease}
+@keyframes lit{0%,100%{background:var(--soft);box-shadow:0 18px 40px rgba(40,50,30,.28),inset 0 0 0 3px rgba(217,191,143,.7)}
+  10%,88%{background:var(--hi);box-shadow:0 22px 50px rgba(40,50,30,.35),0 0 0 10px rgba(217,191,143,.28),0 0 40px 14px rgba(232,207,150,.35),inset 0 0 0 3px #e8cf96}}
 .disc svg{width:170px;height:170px;overflow:visible}
 .disc .st{fill:none;stroke:var(--cream);stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
 .label{margin-top:30px;font-family:"Kufi";font-weight:700;font-size:44px;line-height:1.5}
@@ -106,6 +107,11 @@ html,body{height:100%;background:#1c1418;overflow:hidden}
 .c-sep{width:380px;height:4px;margin:30px 0;border-radius:4px;background:linear-gradient(90deg,transparent,#b89a6a,transparent);animation:grow .7s ease-out}
 .c2{font-family:"Kufi";font-weight:800;font-size:104px}
 
+.frame{position:absolute;inset:26px;border:1.5px solid rgba(217,191,143,.6);border-radius:22px;z-index:5;pointer-events:none}
+.frame::before{content:"";position:absolute;inset:8px;border:1px solid rgba(217,191,143,.3);border-radius:16px}
+.frame b{position:absolute;width:14px;height:14px;background:#d9bf8f;transform:rotate(45deg)}
+.frame b:nth-child(1){top:-8px;left:50%;margin-left:-7px}.frame b:nth-child(2){bottom:-8px;left:50%;margin-left:-7px}
+.frame b:nth-child(3){top:50%;left:-8px;margin-top:-7px}.frame b:nth-child(4){top:50%;right:-8px;margin-top:-7px}
 .wm{position:absolute;top:36px;left:48px;height:120px;z-index:3;opacity:0;animation:fade .5s,off .3s}
 
 /* الدمج بين الصفحات */
@@ -257,6 +263,7 @@ body.nologo .logoBig,body.nologo .c-logo,body.nologo .wm{display:none}
     </div></div>
   </section>
 
+  <div class="frame"><b></b><b></b><b></b><b></b></div>
   <div class="wm" data-at="S1+0.3,T3" data-fill="both,forwards"><img class="logo" alt=""></div>
 </div></div>
 
@@ -268,15 +275,10 @@ body.nologo .logoBig,body.nologo .c-logo,body.nologo .wm{display:none}
 </div>
 <audio id="voice" src="voice-cut.mp3" preload="auto"></audio>
 
+<script src="timeline.js"></script>
 <script>
-// مواضع الجمل المنطوقة في الصوت المقصوص: [البداية، المدة] — يجب أن تطابق build.sh
-const CL = {
-  c0: [0.15, 0.42], c1: [0.90, 1.44], c2: [2.55, 2.91], c3: [6.40, 1.12], c4: [7.70, 2.02],
-  c5: [9.90, 1.34], c6: [11.40, 1.28], c7: [12.85, 1.31], c8: [14.35, 1.62], c9a: [17.05, 1.65], c9b: [18.90, 1.54]
-};
-const TR = [null, 5.55, 16.2, 20.8];      // بداية الدمج إلى الصفحة التالية
+// CL وWORDS وTR وEND في timeline.js (يولّدها timeline.py)
 const SW = TR.map(t => t == null ? 0 : t + 0.62); // لحظة ظهور الصفحة الجديدة تحت الدمج
-const END = 25.5;
 const NEXT_BG = [null, "#6b7b5e", "#4f3045", "#f4ece5"];
 
 const stage = document.getElementById("stage");
@@ -312,15 +314,24 @@ function splitWords(el, start, step = 0.09) {
     n.replaceWith(frag);
   });
 }
-// الكلام المنطوق: لون أفتح يمتد عليه أثناء النطق ثم يختفي
+// كل كلمة تظهر لحظة نطقها، ويمتد عليها لون أفتح أثناء نطقها ثم يختفي
 function sayIt(el, clip) {
-  const [s, d] = CL[clip];
-  splitWords(el, s - 0.12, Math.min(0.12, d / 6));
-  const hl = document.createElement("i");
-  hl.className = "hl";
-  hl.style.animation = `sweep ${d}s linear ${s}s, hlOff .4s ease ${s + d + 0.15}s`;
-  hl.style.animationFillMode = "both, forwards";
-  el.prepend(hl);
+  splitWords(el, 0);
+  const spans = [...el.querySelectorAll(".w")];
+  const times = WORDS[clip];
+  let k = -1;
+  spans.forEach(sp => {
+    if (/[\u0600-\u06FF]/.test(sp.textContent)) k++;
+    const [s, d] = times[Math.max(0, Math.min(k, times.length - 1))];
+    sp.style.animationDelay = (s - 0.04) + "s";
+    if (!/[\u0600-\u06FF]/.test(sp.textContent)) return;
+    sp.classList.add("say");
+    const hl = document.createElement("i");
+    hl.className = "hl";
+    hl.style.animation = `sweep ${d}s linear ${s}s, hlOff .45s ease ${s + d + 0.1}s`;
+    hl.style.animationFillMode = "both, forwards";
+    sp.prepend(hl);
+  });
 }
 
 function build() {
