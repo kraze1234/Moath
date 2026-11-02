@@ -15,6 +15,7 @@ export type ActorSpec = {
   moveTo: Position | null;
   facing: "left" | "right" | "back";
   expression: ExpressionId;
+  label?: string;
 };
 
 export type SceneSpec = {
@@ -51,7 +52,7 @@ export function buildScene(spec: SceneSpec): Scene {
     const big = spec.background === "windowView" ? 0.62 : a.character === "child" ? 0.75 : 1;
     return {
       id: uid(), character: a.character, action: a.action, x0, x1: a.moveTo ? POS[a.moveTo] : x0,
-      facing: a.facing, expression: a.expression, scale: big,
+      facing: a.facing, expression: a.expression, scale: big, label: a.label ?? "",
     };
   });
   const props: PropItem[] = spec.props.map((p) => ({
@@ -65,7 +66,9 @@ export function buildScene(spec: SceneSpec): Scene {
 
 // ——— المخرج المحلي ———
 
-const has = (s: string, re: RegExp) => re.test(s);
+// التشكيل والتطويل يُحذفان قبل المطابقة، فـ«حذّره» تطابق «حذر»
+const plain = (s: string) => s.replace(/[\u064B-\u0652\u0640]/g, "");
+const has = (s: string, re: RegExp) => re.test(plain(s));
 const NAMES = ["فهد", "محمد", "عبدالله", "خالد", "سعد", "ناصر", "سلطان", "فيصل", "تركي", "بندر", "عمر", "علي", "أحمد", "سالم", "ماجد", "نواف"];
 
 function splitSentences(story: string): string[] {
@@ -88,7 +91,7 @@ function splitSentences(story: string): string[] {
 }
 
 function findHeroName(story: string): string {
-  const m = story.match(/(?:اسمه|يُدعى|يدعى)\s+([ء-ي]+)/);
+  const m = story.match(/(?:^|\s)(?:اسمه|يُدعى|يدعى)\s+([ء-ي]+)/);
   if (m) return m[1];
   for (const n of NAMES) if (story.includes(n)) return n;
   return "البطل";
@@ -100,7 +103,8 @@ function extractDialogue(s: string, heroName: string, elderPresent: boolean) {
   const before = s.slice(0, m.index);
   const whisper = has(before, /همس|يهمس|صوت/);
   let speaker = heroName;
-  if (has(before, /صوت/)) speaker = "صوت مجهول";
+  if (has(before, /صوت/)) speaker = "صوت غريب";
+  else if (has(before, /الشيبة|شايب/)) speaker = "الشيبة";
   else if (elderPresent || has(before, /الشيخ|العجوز/)) speaker = "الشيخ";
   return { speaker, line: m[1].trim(), whisper };
 }
@@ -111,20 +115,22 @@ export function directStory(story: string, title = "قصة رعب"): Project {
   let place: BackgroundId = "desertRoad";
   let inside = false;
   let carBroken = false;
+  let phoneUsed = false;
+  let named = false;
   const specs: SceneSpec[] = [];
 
   sentences.forEach((full, idx) => {
     // الكلمات المفتاحية تُقرأ من السرد فقط، لا من داخل الاقتباس
     const s = full.replace(/[«"“][^»"”]*[»"”]/g, " ");
     // المكان: يستمر حتى يتغير
-    const phoneCall = has(s, /اتصال|مكالمة|هاتف|جوال|يرن|رن /);
+    const phoneCall = has(s, /اتصال|مكالمة|هاتف|جوال|تلفون|يرن|رن /);
     const clock = has(s, /الساعة|ساعته|ساعة/);
     if (has(s, /النافذة|نافذة|الشباك|شباك|يطل/)) place = "windowView";
     else if (has(s, /فتح الباب|يفتح الباب|طرق الباب|الباب/) && inside && !has(s, /لا تفتح/)) place = "door";
-    else if (has(s, /غرفة|غرفته|سرير|ينام|نام|البيت|المنزل|بيت/) || ((phoneCall || clock) && inside)) { place = "bedroom"; inside = true; }
+    else if (has(s, /غرفة|غرفته|سرير|ينام|نام|البيت|المنزل|بيت|حجرته/) || ((phoneCall || clock) && inside)) { place = "bedroom"; inside = true; }
     else if (has(s, /مسجد|جامع|مئذنة/)) place = "mosque";
-    else if (has(s, /قرية|القرية|بيوت|الأهالي/) && !inside) place = has(s, /مشى|دخل|يدخل|وصل/) ? "village" : place === "desertRoad" ? "desertRoad" : "village";
-    else if (has(s, /صحراء|الطريق|طريق|سيارة|يقود|يسوق/) && !inside) place = "desertRoad";
+    else if (has(s, /قرية|القرية|بيوت|الأهالي/) && !inside) place = has(s, /مشى|دخل|يدخل|وصل|راح/) ? "village" : place === "desertRoad" ? "desertRoad" : "village";
+    else if (has(s, /صحراء|الطريق|طريق|سيارة|يقود|يسوق|البر/) && !inside) place = "desertRoad";
     if (place === "windowView" || place === "door") inside = true;
     if ((phoneCall || clock) && inside && place !== "bedroom") place = "bedroom";
 
@@ -134,10 +140,11 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     let camera: CameraId = idx === 0 ? "zoomOut" : "zoomIn";
     let light: LightId = inside ? "dark" : "normal";
     const sudden = has(s, /فجأة|فجاة/);
-    const elder = has(s, /شيخ|عجوز|مسن|رجل كبير/);
+    const elder = has(s, /شيخ|عجوز|مسن|رجل كبير|شيبة|شايب/);
     const villagers = has(s, /أهل القرية|القرويين|سكان|الأهالي|الناس/);
     const mother = has(s, /أمه|والدته|أمي|أم /);
-    const double = has(s, /يشبه صوته|مثل صوته|نسخة منه|صوته تمامًا/);
+    // صوت يشبه صوته على الجوال: فهد ماسك الجوال ومعروق (بلا شخصية ثانية)
+    const ownVoice = has(s, /يشبه صوته|مثل صوته|نفس صوته|صوته تماما|صوته بالضبط/);
     const dialogue = extractDialogue(full, hero, elder);
 
     // فعل البطل
@@ -148,16 +155,18 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     let facing: "left" | "right" | "back" = "left";
     const carScene = place === "desertRoad" && has(s, /سيارة|سيارته|يقود|يسوق|تعطل/);
 
-    if (carScene && has(s, /تعطل|توقف|خرب/)) { heroAction = "carStop"; carBroken = true; sfx.push("engine"); camera = "shake"; }
+    if (carScene && has(s, /تعطل|توقف|خرب|طفت|وقفت/)) { heroAction = "carStop"; carBroken = true; sfx.push("engine"); camera = "shake"; }
     else if (carScene) { heroAction = "drive"; from = "offRight"; to = "center"; camera = "panLeft"; }
     else if (has(s, /يركض|ركض|هرب|يهرب/)) { heroAction = "run"; from = "right"; to = "left"; camera = "panLeft"; sfx.push("footsteps"); }
-    else if (has(s, /مشى|يمشي|دخل|يدخل|سار|اتجه|اقترب|ذهب|وصل/)) { heroAction = "walk"; from = "offRight"; to = elder ? "right" : "center"; camera = "panLeft"; sfx.push("footsteps"); }
+    else if (has(s, /مشى|يمشي|دخل|يدخل|سار|اتجه|اقترب|ذهب|وصل|راح|قرب/)) { heroAction = "walk"; from = "offRight"; to = elder ? "right" : "center"; camera = "panLeft"; sfx.push("footsteps"); }
     else if (place === "door" && has(s, /فتح|يفتح/)) { heroAction = "openDoor"; from = "right"; sfx.push("creak"); }
     else if (phoneCall) { heroAction = "phone"; heroExpr = "scared"; from = "left"; sfx.push("ring"); camera = "shake"; }
-    else if (has(s, /التفت|استدار/)) { heroAction = "turn"; }
-    else if (has(s, /خاف|رعب|ارتجف|تجمد|مرعوب|يسمع|سمع|تناديه|يناديه|همس|يهمس/)) { heroAction = "scared"; heroExpr = "scared"; sfx.push("heartbeat"); }
-    else if (has(s, /لاحظ|رأى|شاهد|ينظر|نظر|يرى|وجد/)) { heroAction = "look"; }
+    else if (has(s, /التفت|استدار|لف /)) { heroAction = "turn"; }
+    else if (has(s, /خاف|رعب|ارتجف|تجمد|مرعوب|يسمع|سمع|تناديه|يناديه|همس|يهمس|انفجع|ارتاع/)) { heroAction = "scared"; heroExpr = "scared"; sfx.push("heartbeat"); }
+    else if (has(s, /لاحظ|رأى|شاهد|ينظر|نظر|يرى|وجد|شاف|يشوف|طالع|يطالع|طل|لقى/)) { heroAction = "look"; }
     if (dialogue?.whisper) { heroExpr = "scared"; if (heroAction === "idle" || heroAction === "look") heroAction = "scared"; }
+    if (phoneCall) phoneUsed = true;
+    if (ownVoice || (dialogue?.whisper && phoneUsed && inside)) { heroAction = "phone"; heroExpr = "scared"; from = "center"; to = null; }
 
     // من يظهر في المشهد
     if (place === "windowView") {
@@ -176,7 +185,6 @@ export function directStory(story: string, title = "قصة رعب"): Project {
         if (talking) { const h = actors.find((a) => a.character === "hero"); if (h) { h.position = "right"; h.moveTo = null; h.action = h.action === "walk" ? "idle" : h.action; } camera = "static"; }
       }
       if (villagers && place !== "bedroom") ["left", "center"].forEach((p) => actors.push({ character: "villager", action: "freeze", position: p as Position, moveTo: null, facing: "right", expression: "blank" }));
-      if (double) { actors.push({ character: "double", action: "freeze", position: "left", moveTo: null, facing: "right", expression: "blank" }); const h = actors.find((a) => a.character === "hero"); if (h) h.position = "right"; }
       if (mother && place === "bedroom") { props.push({ kind: "windowShadow", state: null }); sfx.push("whisper"); const h = actors.find((a) => a.character === "hero"); if (h) { h.position = "left"; h.facing = "right"; } }
       if (has(s, /طفل|ولد صغير|بنت صغيرة/)) actors.push({ character: "child", action: "idle", position: "left", moveTo: null, facing: "right", expression: "neutral" });
       if (has(s, /ظل|شبح|كائن|شخص غريب/)) actors.push({ character: "figure", action: "freeze", position: "left", moveTo: null, facing: "right", expression: "blank" });
@@ -192,7 +200,7 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     }
     if (clock) {
       const t = s.match(/(\d{1,2})[:٫](\d{2})/);
-      const t3 = has(s, /الثالثة/) ? "3:00" : null;
+      const t3 = has(s, /الثالثة|الثلاث/) ? "3:00" : null;
       props.push({ kind: "clock", state: t ? `${t[1]}:${t[2]}` : t3 ?? "3:00" });
       camera = "zoomIn";
     }
@@ -207,13 +215,19 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     if (sudden) { sfx.push("sting"); if (camera !== "panLeft") camera = "shake"; }
     if (has(s, /طرق|يطرق/)) sfx.push("knock");
     if (place === "village" || place === "mosque") sfx.push("crickets");
-    const villageLit = has(s, /مضيئة|مضاءة|أنوار|منيرة|مضيئ/) || place === "village" || place === "mosque";
-    if (has(s, /مضيئة|مضاءة|قرية/) && place === "desertRoad" && heroAction === "look") camera = "zoomIn";
+    const villageLit = has(s, /مضيئة|مضاءة|أنوار|منيرة|مضيئ|منورة|منوره|نور/) || place === "village" || place === "mosque";
+    if (has(s, /مضيئة|مضاءة|منورة|قرية/) && place === "desertRoad" && heroAction === "look") camera = "zoomIn";
+
+    // اسم البطل يظهر فوقه أول ما يطلع
+    const h = actors.find((a) => a.character === "hero");
+    if (h && !named && hero !== "البطل") { h.label = hero; named = true; }
 
     specs.push({
       text: full, dialogue, background: place, villageLit, camera, light, actors, props, sfx: [...new Set(sfx)],
     });
   });
 
-  return { title, story, scenes: specs.map(buildScene), ambience: "wind", ambienceVolume: 0.25 };
+  // قصة تدور حول فتح الباب تنتهي بخيارين للمشاهد
+  const choices = has(story, /تفتح الباب|افتح الباب/) ? ["افتح الباب", "لا تفتح الباب"] : [];
+  return { title, story, scenes: specs.map(buildScene), ambience: null, ambienceVolume: 0.25, silent: true, choices };
 }

@@ -62,7 +62,7 @@ export function Character(p: CharacterProps) {
   if (p.action === "talk") { mouthOpen = Math.floor(f / 5) % 2 === 0 && f < p.frames - 10; armF = -20 + Math.sin(f / 6) * 18; }
   if (p.action === "look") headTilt = interpolate(f, [0, 12], [0, -7], { extrapolateRight: "clamp" }) + Math.sin(f / 25) * 2;
   if (p.action === "openDoor") armF = interpolate(f, [0, p.frames * 0.3], [-6, -82], { extrapolateRight: "clamp" });
-  if (p.action === "phone") { armF = -150; headTilt = 6; }
+  if (p.action === "phone") { armF = 158; headTilt = -4; shakeX = Math.sin(f * 2.1) * 1.5; }
   const turning = p.action === "turn" && Math.abs(f - p.frames * 0.4) < 4;
   const squash = turning ? 0.9 : 1;
   const sit = p.action === "sit";
@@ -75,9 +75,18 @@ export function Character(p: CharacterProps) {
 
   const arm = (rot: number, side: number) => (
     <g transform={`translate(${side * 30} ${shoulderY + 10}) rotate(${rot})`}>
-      <rect x={-9} y={-4} width={18} height={sit ? 90 : 108} rx={9} fill={L.bisht ?? L.thobe} />
-      {!ghost && <circle cx={0} cy={sit ? 90 : 106} r={9} fill={L.skin} />}
-      {p.action === "phone" && side === -1 && <rect x={-10} y={sit ? 84 : 100} width={20} height={34} rx={4} fill="#14161c" />}
+      {(() => {
+        // الجوال على الأذن: ذراع أقصر من الجنب حتى لا تغطي الوجه
+        const len = p.action === "phone" && side === -1 ? 78 : sit ? 90 : 108;
+        return (
+          <>
+            <rect x={-9} y={-4} width={18} height={len} rx={9} fill={L.bisht ?? L.thobe} />
+            {p.action === "phone" && side === -1 && <rect x={-11} y={len - 26} width={22} height={40} rx={5} fill="#14161c" />}
+            {p.action === "phone" && side === -1 && <rect x={-7} y={len - 21} width={14} height={28} rx={2} fill={Math.floor(f / 8) % 2 ? "#9fd3ff" : "#5f7fa8"} />}
+            {!ghost && <circle cx={0} cy={len - 2} r={9} fill={L.skin} />}
+          </>
+        );
+      })()}
     </g>
   );
 
@@ -120,7 +129,11 @@ export function Character(p: CharacterProps) {
         ) : expr === "neutral" ? (
           <rect x={dx - 8} y={headY + 18} width={16} height={3.5} rx={2} fill="#2a1414" />
         ) : null}
-        {expr === "scared" && p.character !== "double" && <path d={`M 34 ${headY - 14} q 6 10 0 14 q -6 -4 0 -14 Z`} fill="#8fc5e8" />}
+        {expr === "scared" && p.character !== "double" && [0, 1, 2].map((i) => {
+          const t = ((f + i * 11) % 33) / 33;
+          const sx = [36, -38, 28][i], sy = headY - 18 + [0, 4, 10][i];
+          return <path key={i} d={`M ${sx} ${sy + t * 50} q 9 14 0 22 q -9 -8 0 -22 Z`} fill="#8fc5e8" opacity={1 - t * 0.7} />;
+        })}
       </g>
     );
   };

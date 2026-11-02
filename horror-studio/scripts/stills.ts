@@ -18,8 +18,11 @@ const inputProps = { project, absoluteMedia: "" };
 const composition = await selectComposition({ serveUrl, id: "Story", inputProps, browserExecutable });
 let from = Math.round(TITLE_SECONDS * FPS);
 for (const [i, s] of project.scenes.entries()) {
-  const f = from + Math.floor(sceneFrames(s) * 0.6);
+  const f = from + Math.floor(sceneFrames(s) * (i === 0 ? 0.45 : 0.6));
   await renderStill({ serveUrl, composition, inputProps, frame: f, output: path.join(out, `s${String(i).padStart(2, "0")}.png`), browserExecutable, scale: 0.4 });
   from += sceneFrames(s);
+}
+if (project.choices.length === 2) {
+  await renderStill({ serveUrl, composition, inputProps, frame: composition.durationInFrames - 20, output: path.join(out, "zz-choices.png"), browserExecutable, scale: 0.4 });
 }
 console.log("done", out);

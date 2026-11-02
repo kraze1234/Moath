@@ -36,7 +36,7 @@ function lightOpacity(s: Scene, frame: number) {
   }
 }
 
-export function SceneView({ scene }: { scene: Scene }) {
+export function SceneView({ scene, hideText = false }: { scene: Scene; hideText?: boolean }) {
   const frame = useCurrentFrame();
   const frames = sceneFrames(scene);
   const opening = scene.actors.find((a) => a.action === "openDoor");
@@ -83,7 +83,22 @@ export function SceneView({ scene }: { scene: Scene }) {
         <rect width={WIDTH} height={HEIGHT} fill="#000" opacity={fadeIn} />
       </svg>
 
-      {scene.dialogue && frame > 6 && (
+      {/* بطاقة اسم الشخصية أول ظهورها */}
+      {!hideText && scene.actors.filter((a) => a.label).map((a) => {
+        const inCar = a === driver;
+        const x = actorX({ ...a, frame, frames });
+        const top = inCar ? bg.groundY - 300 : bg.groundY - 560 * a.scale;
+        const o = interpolate(frame, [8, 18, frames * 0.75, frames * 0.75 + 10], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        return (
+          <div key={a.id} style={{ position: "absolute", left: x, top, transform: `translate(-50%, ${(1 - o) * 20}px)`, opacity: o,
+            background: "#e9e1cc", color: "#1b1d27", fontFamily: AR_FONT, fontWeight: 800, fontSize: 50, padding: "6px 28px", borderRadius: 18, direction: "rtl", whiteSpace: "nowrap" }}>
+            {a.label}
+            <div style={{ position: "absolute", left: "50%", bottom: -14, marginLeft: -14, width: 0, height: 0, borderLeft: "14px solid transparent", borderRight: "14px solid transparent", borderTop: "14px solid #e9e1cc" }} />
+          </div>
+        );
+      })}
+
+      {!hideText && scene.dialogue && frame > 6 && (
         <div style={{ position: "absolute", top: 230, left: 60, right: 60, direction: "rtl", textAlign: "center", fontFamily: AR_FONT }}>
           <div style={{ display: "inline-block", fontSize: 34, color: "#e8d9a8", marginBottom: 14 }}>{scene.dialogue.speaker}</div>
           <div style={{
@@ -95,11 +110,11 @@ export function SceneView({ scene }: { scene: Scene }) {
         </div>
       )}
 
-      <div style={{ position: "absolute", bottom: 210, left: 50, right: 50, display: "flex", justifyContent: "center", direction: "rtl" }}>
+      {!hideText && <div style={{ position: "absolute", bottom: 210, left: 50, right: 50, display: "flex", justifyContent: "center", direction: "rtl" }}>
         <div style={{ background: "rgba(0,0,0,.72)", color: "#fff", fontFamily: AR_FONT, fontWeight: 700, fontSize: 52, lineHeight: 1.6, padding: "12px 30px", borderRadius: 14, textAlign: "center" }}>
           {chunks[idx] ?? ""}
         </div>
-      </div>
+      </div>}
     </AbsoluteFill>
   );
 }

@@ -107,6 +107,7 @@ export type Actor = {
   facing: "left" | "right" | "back";
   expression: ExpressionId;
   scale: number;
+  label: string;       // اسم يظهر فوق الشخصية أول ظهورها (فارغ = بلا اسم)
 };
 
 export type PropItem = {
@@ -142,6 +143,8 @@ export type Project = {
   scenes: Scene[];
   ambience: SfxId | null;                // صوت خلفية على طول الفيديو
   ambienceVolume: number;
+  silent: boolean;                       // فيديو صامت: بلا راوٍ ولا مؤثرات ولا خلفية صوتية
+  choices: string[];                     // خياران يظهران في النهاية (فارغ = بلا خيارات)
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 9);

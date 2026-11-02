@@ -9,6 +9,12 @@ import { TITLE_SECONDS, autoDuration, sceneFrames, sceneSeconds, totalFrames } f
 import SAMPLE from "../../samples/fahad.txt?raw";
 
 type Health = { llm: boolean; elevenlabs: boolean; espeak: boolean };
+
+// مشاريع محفوظة بنسخة أقدم: تُكمَّل الحقول الجديدة
+const withDefaults = (p: Project): Project => ({
+  ...p, silent: p.silent ?? true, choices: p.choices ?? [],
+  scenes: p.scenes.map((s) => ({ ...s, actors: s.actors.map((a) => ({ ...a, label: a.label ?? "" })) })),
+});
 const STORAGE = "horror-studio-project";
 
 async function api<T>(url: string, body?: unknown): Promise<T> {
@@ -32,7 +38,7 @@ export function App() {
   const [title, setTitle] = useState("القرية التي لا يأتيها الفجر");
   const [engine, setEngine] = useState<"rules" | "llm">("rules");
   const [project, setProject] = useState<Project | null>(() => {
-    try { const s = localStorage.getItem(STORAGE); return s ? JSON.parse(s) : null; } catch { return null; }
+    try { const s = localStorage.getItem(STORAGE); return s ? withDefaults(JSON.parse(s)) : null; } catch { return null; }
   });
   const [sel, setSel] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
@@ -126,10 +132,10 @@ export function App() {
     a.download = `${project.title || "story"}.json`; a.click();
   }
   function loadFile(f: File) {
-    f.text().then((t) => { const p = JSON.parse(t) as Project; setProject(p); setStory(p.story); setTitle(p.title); setSel(0); }).catch(() => setError("ملف غير صالح"));
+    f.text().then((t) => { const p = withDefaults(JSON.parse(t) as Project); setProject(p); setStory(p.story); setTitle(p.title); setSel(0); }).catch(() => setError("ملف غير صالح"));
   }
 
-  const inputProps = useMemo(() => ({ project: project ?? { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0 }, absoluteMedia: "" }), [project]);
+  const inputProps = useMemo(() => ({ project: project ?? { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0, silent: true, choices: [] }, absoluteMedia: "" }), [project]);
 
   return (
     <div>
@@ -195,6 +201,16 @@ export function App() {
           ) : <div className="muted">اضغط «أنشئ الرسوم المتحركة» لتظهر المعاينة.</div>}
           {project && (
             <div style={{ width: "min(100%, 400px)" }}>
+              <label className="chip" style={{ marginTop: 12 }}><input type="checkbox" checked={project.silent} onChange={(e) => setProject({ ...project, silent: e.target.checked })} />فيديو صامت (بلا أي صوت)</label>
+
+              <h3>الخياران في النهاية</h3>
+              <div className="grid2">
+                <input placeholder="الخيار الأول (بنفسجي)" value={project.choices[0] ?? ""} onChange={(e) => setProject({ ...project, choices: [e.target.value, project.choices[1] ?? ""] })} />
+                <input placeholder="الخيار الثاني" value={project.choices[1] ?? ""} onChange={(e) => setProject({ ...project, choices: [project.choices[0] ?? "", e.target.value] })} />
+              </div>
+              <div className="muted">اتركهما فارغين لإلغاء شاشة الخيارات.</div>
+
+              {!project.silent && <>
               <h3>صوت الراوي</h3>
               <div className="grid2">
                 <select value={voice} onChange={(e) => setVoice(e.target.value as any)}>
@@ -217,6 +233,7 @@ export function App() {
                 </select>
                 <input type="range" min={0} max={1} step={0.05} value={project.ambienceVolume} onChange={(e) => setProject({ ...project, ambienceVolume: +e.target.value })} />
               </div>
+              </>}
 
               <h3>٣. التصدير</h3>
               <button className="primary" onClick={exportVideo} disabled={job?.status === "rendering"}>تصدير MP4 (1080×1920، 30 إطار/ث)</button>
@@ -278,6 +295,7 @@ export function App() {
                       <option value="left">يتجه لليسار</option><option value="right">يتجه لليمين</option><option value="back">ظهره للكاميرا</option>
                     </select>
                   </div>
+                  <input style={{ marginTop: 6 }} placeholder="اسم يظهر فوقه (اختياري)" value={a.label} onChange={(e) => updateActor(a.id, { label: e.target.value })} />
                   <label>البداية: {Math.round(a.x0)} — النهاية: {Math.round(a.x1)}</label>
                   <div className="grid2">
                     <input type="range" min={-200} max={1280} value={a.x0} onChange={(e) => updateActor(a.id, { x0: +e.target.value })} />
@@ -290,7 +308,7 @@ export function App() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => updateScene({ actors: [...scene.actors, { id: uid(), character: "hero", action: "idle", x0: 540, x1: 540, facing: "left", expression: "neutral", scale: 1 }] })}>+ شخصية</button>
+              <button onClick={() => updateScene({ actors: [...scene.actors, { id: uid(), character: "hero", action: "idle", x0: 540, x1: 540, facing: "left", expression: "neutral", scale: 1, label: "" }] })}>+ شخصية</button>
 
               <h3>الأشياء</h3>
               {scene.props.map((p) => (

@@ -1,4 +1,4 @@
-// مثال كامل من الطرف إلى الطرف: قصة نصية ← المخرج المحلي ← صوت espeak (إن وُجد) ← MP4.
+// مثال كامل من الطرف إلى الطرف: قصة نصية ← المخرج المحلي ← MP4 (صامت، أو بصوت espeak مع --voice).
 // تشغيل: npm run sample   (الناتج: data/outputs/sample.mp4)
 import fs from "node:fs";
 import path from "node:path";
@@ -11,7 +11,9 @@ import { renderProject, OUT_DIR } from "../server/render";
 const ROOT = path.resolve(import.meta.dirname, "..");
 const story = fs.readFileSync(path.join(ROOT, "samples/fahad.txt"), "utf8");
 const project = directStory(story, "القرية التي لا يأتيها الفجر");
-const withVoice = !process.argv.includes("--no-voice") && (await hasEspeak());
+// المثال صامت افتراضيًا؛ أضف --voice لتجربة صوت espeak-ng
+const withVoice = process.argv.includes("--voice") && (await hasEspeak());
+project.silent = !withVoice;
 
 if (withVoice) {
   for (const s of project.scenes) s.narration = await espeak(s.text.replace(/[«»]/g, ""), `sample-${s.id}`);
