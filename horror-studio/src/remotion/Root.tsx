@@ -4,7 +4,7 @@ import { FPS, HEIGHT, Project, WIDTH } from "../shared/types";
 import { totalFrames } from "../shared/timing";
 import { StoryVideo } from "./StoryVideo";
 
-const empty: Project = { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0, silent: true, choices: [] };
+const empty: Project = { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0, narrationOff: true, choices: [] };
 
 export const Root: React.FC = () => (
   <Composition

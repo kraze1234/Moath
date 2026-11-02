@@ -29,6 +29,10 @@ SOUNDS = {
     "sting": ("aevalsrc='(0.6*sin(2*PI*98*t)+0.5*sin(2*PI*104*t)+0.3*(random(0)*2-1)*exp(-6*t))*exp(-1.4*t)':d=2.8", "lowpass=f=2500"),
     # همس: ضجيج عالٍ متقطع كأنفاس
     "whisper": ("anoisesrc=color=white:amplitude=0.25:d=3.5", "highpass=f=1800,lowpass=f=6000,tremolo=f=5:d=0.9,volume=1.2"),
+    # سيارة تمشي: محرك منخفض مع ضجيج الطريق
+    "car": ("aevalsrc='0.45*sin(2*PI*42*t+3*sin(2*PI*7*t))+0.25*sin(2*PI*84*t)+0.15*(random(0)*2-1)':d=10", "lowpass=f=420,volume=1.6"),
+    # تكتكة ساعة كل ثانية
+    "tick": ("aevalsrc='(random(0)*2-1)*exp(-300*mod(t,1))':d=8", "highpass=f=1500,volume=3"),
     # خطوات على الرمل
     "footsteps": ("aevalsrc='(random(0)*2-1)*exp(-35*mod(t,0.48))':d=6", "lowpass=f=400,volume=1.6"),
 }

@@ -5,9 +5,9 @@ import { FPS, Project, SfxId } from "../shared/types";
 import { CHOICE_SECONDS, TITLE_SECONDS, hasChoices, sceneFrames } from "../shared/timing";
 import { SceneView } from "./SceneView";
 
-const LOOPING: SfxId[] = ["wind", "drone", "crickets", "heartbeat"];
+const LOOPING: SfxId[] = ["wind", "drone", "crickets", "heartbeat", "car", "tick"];
 const VOLUME: Record<SfxId, number> = {
-  wind: 0.35, drone: 0.5, heartbeat: 0.7, knock: 0.9, creak: 0.8, ring: 0.6, engine: 0.8, sting: 0.7, whisper: 0.5, footsteps: 0.5, crickets: 0.3,
+  wind: 0.35, drone: 0.5, car: 0.55, tick: 0.6, heartbeat: 0.7, knock: 0.9, creak: 0.8, ring: 0.6, engine: 0.8, sting: 0.7, whisper: 0.5, footsteps: 0.5, crickets: 0.3,
 };
 
 const sfxUrl = (id: SfxId) => staticFile(`sfx/${id}.wav`);
@@ -69,7 +69,7 @@ export function StoryVideo({ project, absoluteMedia = "" }: { project: Project; 
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       <Sequence durationInFrames={from}><Title title={project.title} /></Sequence>
-      {!project.silent && project.ambience && <Audio src={sfxUrl(project.ambience)} loop volume={project.ambienceVolume} />}
+      {project.ambience && <Audio src={sfxUrl(project.ambience)} loop volume={project.ambienceVolume} />}
       {project.scenes.map((s) => {
         const d = sceneFrames(s);
         const start = from;
@@ -77,8 +77,8 @@ export function StoryVideo({ project, absoluteMedia = "" }: { project: Project; 
         return (
           <Sequence key={s.id} from={start} durationInFrames={d}>
             <SceneView scene={s} />
-            {!project.silent && s.narration && <Audio src={media(s.narration.url)} />}
-            {!project.silent && s.sfx.filter((x) => x !== project.ambience).map((x) => (
+            {!project.narrationOff && s.narration && <Audio src={media(s.narration.url)} />}
+            {s.sfx.filter((x) => x !== project.ambience).map((x) => (
               <Audio key={x} src={sfxUrl(x)} volume={VOLUME[x]} loop={LOOPING.includes(x)} />
             ))}
           </Sequence>
@@ -90,6 +90,7 @@ export function StoryVideo({ project, absoluteMedia = "" }: { project: Project; 
             <SceneView scene={project.scenes[project.scenes.length - 1]} hideText />
           </Freeze>
           <Choices choices={project.choices} />
+          <Audio src={sfxUrl("heartbeat")} volume={0.8} loop />
         </Sequence>
       )}
     </AbsoluteFill>

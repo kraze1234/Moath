@@ -30,7 +30,7 @@ app.post("/api/direct", async (req, res) => {
     if (!llmAvailable()) return res.status(400).json({ error: "ضع ANTHROPIC_API_KEY لتفعيل المخرج بالذكاء الاصطناعي" });
     try {
       const out = await directWithClaude(story);
-      const project: Project = { title: title || out.title, story, scenes: out.scenes.map(buildScene), ambience: null, ambienceVolume: 0.25, silent: true,
+      const project: Project = { title: title || out.title, story, scenes: out.scenes.map(buildScene), ambience: "wind", ambienceVolume: 0.2, narrationOff: true,
         choices: /تفتح الباب|افتح الباب/.test(story) ? ["افتح الباب", "لا تفتح الباب"] : [] };
       return res.json({ project, engine: "llm" });
     } catch (e: any) {

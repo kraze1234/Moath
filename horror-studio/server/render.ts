@@ -30,7 +30,7 @@ export async function renderProject(project: Project, mediaOrigin: string, outFi
   await renderMedia({
     serveUrl, composition, inputProps, codec: "h264", outputLocation: outFile,
     browserExecutable: browserExecutable(), concurrency: Math.max(1, Math.min(4, (await import("node:os")).cpus().length)),
-    audioCodec: "aac", pixelFormat: "yuv420p", crf: 20, muted: !!project.silent,
+    audioCodec: "aac", pixelFormat: "yuv420p", crf: 20,
     onProgress: ({ progress }) => onProgress?.(progress),
   });
   return outFile;

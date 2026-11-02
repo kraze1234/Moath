@@ -95,6 +95,8 @@ export const SFX = {
   whisper: "همس",
   footsteps: "خطوات",
   crickets: "صراصير الليل",
+  car: "سيارة تمشي",
+  tick: "تكتكة ساعة",
 } as const;
 export type SfxId = keyof typeof SFX;
 
@@ -143,7 +145,7 @@ export type Project = {
   scenes: Scene[];
   ambience: SfxId | null;                // صوت خلفية على طول الفيديو
   ambienceVolume: number;
-  silent: boolean;                       // فيديو صامت: بلا راوٍ ولا مؤثرات ولا خلفية صوتية
+  narrationOff: boolean;                 // بلا صوت راوٍ بشري؛ المؤثرات وصوت الخلفية تبقى
   choices: string[];                     // خياران يظهران في النهاية (فارغ = بلا خيارات)
 };
 

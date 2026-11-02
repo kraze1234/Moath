@@ -12,7 +12,7 @@ type Health = { llm: boolean; elevenlabs: boolean; espeak: boolean };
 
 // مشاريع محفوظة بنسخة أقدم: تُكمَّل الحقول الجديدة
 const withDefaults = (p: Project): Project => ({
-  ...p, silent: p.silent ?? true, choices: p.choices ?? [],
+  ...p, narrationOff: p.narrationOff ?? true, choices: p.choices ?? [],
   scenes: p.scenes.map((s) => ({ ...s, actors: s.actors.map((a) => ({ ...a, label: a.label ?? "" })) })),
 });
 const STORAGE = "horror-studio-project";
@@ -135,7 +135,7 @@ export function App() {
     f.text().then((t) => { const p = withDefaults(JSON.parse(t) as Project); setProject(p); setStory(p.story); setTitle(p.title); setSel(0); }).catch(() => setError("ملف غير صالح"));
   }
 
-  const inputProps = useMemo(() => ({ project: project ?? { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0, silent: true, choices: [] }, absoluteMedia: "" }), [project]);
+  const inputProps = useMemo(() => ({ project: project ?? { title: "", story: "", scenes: [], ambience: null, ambienceVolume: 0, narrationOff: true, choices: [] }, absoluteMedia: "" }), [project]);
 
   return (
     <div>
@@ -201,7 +201,7 @@ export function App() {
           ) : <div className="muted">اضغط «أنشئ الرسوم المتحركة» لتظهر المعاينة.</div>}
           {project && (
             <div style={{ width: "min(100%, 400px)" }}>
-              <label className="chip" style={{ marginTop: 12 }}><input type="checkbox" checked={project.silent} onChange={(e) => setProject({ ...project, silent: e.target.checked })} />فيديو صامت (بلا أي صوت)</label>
+              <label className="chip" style={{ marginTop: 12 }}><input type="checkbox" checked={project.narrationOff} onChange={(e) => setProject({ ...project, narrationOff: e.target.checked })} />بدون صوت راوٍ (المؤثرات تبقى)</label>
 
               <h3>الخياران في النهاية</h3>
               <div className="grid2">
@@ -210,7 +210,7 @@ export function App() {
               </div>
               <div className="muted">اتركهما فارغين لإلغاء شاشة الخيارات.</div>
 
-              {!project.silent && <>
+              {!project.narrationOff && <>
               <h3>صوت الراوي</h3>
               <div className="grid2">
                 <select value={voice} onChange={(e) => setVoice(e.target.value as any)}>
@@ -224,6 +224,7 @@ export function App() {
                 <button onClick={() => setProject({ ...project, scenes: project.scenes.map((s) => ({ ...s, narration: null })) })}>إزالة الأصوات</button>
               </div>
               <div className="muted">أو ارفع تسجيلك لكل مشهد من لوحة المشهد. المدة والترجمة تتبعان الصوت تلقائيًا.</div>
+              </>}
 
               <h3>صوت الخلفية</h3>
               <div className="grid2">
@@ -233,7 +234,6 @@ export function App() {
                 </select>
                 <input type="range" min={0} max={1} step={0.05} value={project.ambienceVolume} onChange={(e) => setProject({ ...project, ambienceVolume: +e.target.value })} />
               </div>
-              </>}
 
               <h3>٣. التصدير</h3>
               <button className="primary" onClick={exportVideo} disabled={job?.status === "rendering"}>تصدير MP4 (1080×1920، 30 إطار/ث)</button>

@@ -156,7 +156,7 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     const carScene = place === "desertRoad" && has(s, /سيارة|سيارته|يقود|يسوق|تعطل/);
 
     if (carScene && has(s, /تعطل|توقف|خرب|طفت|وقفت/)) { heroAction = "carStop"; carBroken = true; sfx.push("engine"); camera = "shake"; }
-    else if (carScene) { heroAction = "drive"; from = "offRight"; to = "center"; camera = "panLeft"; }
+    else if (carScene) { heroAction = "drive"; from = "offRight"; to = "center"; camera = "panLeft"; sfx.push("car"); }
     else if (has(s, /يركض|ركض|هرب|يهرب/)) { heroAction = "run"; from = "right"; to = "left"; camera = "panLeft"; sfx.push("footsteps"); }
     else if (has(s, /مشى|يمشي|دخل|يدخل|سار|اتجه|اقترب|ذهب|وصل|راح|قرب/)) { heroAction = "walk"; from = "offRight"; to = elder ? "right" : "center"; camera = "panLeft"; sfx.push("footsteps"); }
     else if (place === "door" && has(s, /فتح|يفتح/)) { heroAction = "openDoor"; from = "right"; sfx.push("creak"); }
@@ -202,6 +202,7 @@ export function directStory(story: string, title = "قصة رعب"): Project {
       const t = s.match(/(\d{1,2})[:٫](\d{2})/);
       const t3 = has(s, /الثالثة|الثلاث/) ? "3:00" : null;
       props.push({ kind: "clock", state: t ? `${t[1]}:${t[2]}` : t3 ?? "3:00" });
+      sfx.push("tick");
       camera = "zoomIn";
     }
     if (phoneCall && heroAction !== "phone") props.push({ kind: "phone", state: "ringing" });
@@ -229,5 +230,5 @@ export function directStory(story: string, title = "قصة رعب"): Project {
 
   // قصة تدور حول فتح الباب تنتهي بخيارين للمشاهد
   const choices = has(story, /تفتح الباب|افتح الباب/) ? ["افتح الباب", "لا تفتح الباب"] : [];
-  return { title, story, scenes: specs.map(buildScene), ambience: null, ambienceVolume: 0.25, silent: true, choices };
+  return { title, story, scenes: specs.map(buildScene), ambience: "wind", ambienceVolume: 0.2, narrationOff: true, choices };
 }
