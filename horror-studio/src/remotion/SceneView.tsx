@@ -59,9 +59,16 @@ export function SceneView({ scene, hideText = false }: { scene: Scene; hideText?
   ));
 
   // الترجمة: أسطر قصيرة موزعة على زمن النطق
-  const chunks = subtitleChunks(scene.text);
-  const speech = scene.narration ? Math.round(scene.narration.duration * 30) : frames - 12;
-  const idx = Math.min(chunks.length - 1, Math.floor((frame / Math.max(1, speech)) * chunks.length));
+  // بتوقيت النطق إن وُجد، وإلا تُوزّع الأسطر على مدة المشهد
+  let line: string;
+  if (scene.cues?.length) {
+    const t = frame / 30;
+    line = [...scene.cues].reverse().find((c) => c.t <= t)?.text ?? "";
+  } else {
+    const chunks = subtitleChunks(scene.text);
+    const speech = scene.narration ? Math.round(scene.narration.duration * 30) : frames - 12;
+    line = chunks[Math.min(chunks.length - 1, Math.floor((frame / Math.max(1, speech)) * chunks.length))] ?? "";
+  }
   const fadeIn = interpolate(frame, [0, 8], [1, 0], { extrapolateRight: "clamp" });
 
   return (
@@ -98,7 +105,7 @@ export function SceneView({ scene, hideText = false }: { scene: Scene; hideText?
         );
       })}
 
-      {!hideText && scene.dialogue && frame > 6 && (
+      {!hideText && scene.dialogue && frame > Math.max(6, (scene.dialogueAt ?? 0) * 30) && (
         <div style={{ position: "absolute", top: 230, left: 60, right: 60, direction: "rtl", textAlign: "center", fontFamily: AR_FONT }}>
           <div style={{ display: "inline-block", fontSize: 34, color: "#e8d9a8", marginBottom: 14 }}>{scene.dialogue.speaker}</div>
           <div style={{
@@ -110,9 +117,9 @@ export function SceneView({ scene, hideText = false }: { scene: Scene; hideText?
         </div>
       )}
 
-      {!hideText && <div style={{ position: "absolute", bottom: 210, left: 50, right: 50, display: "flex", justifyContent: "center", direction: "rtl" }}>
+      {!hideText && line && <div style={{ position: "absolute", bottom: 210, left: 50, right: 50, display: "flex", justifyContent: "center", direction: "rtl" }}>
         <div style={{ background: "rgba(0,0,0,.72)", color: "#fff", fontFamily: AR_FONT, fontWeight: 700, fontSize: 52, lineHeight: 1.6, padding: "12px 30px", borderRadius: 14, textAlign: "center" }}>
-          {chunks[idx] ?? ""}
+          {line}
         </div>
       </div>}
     </AbsoluteFill>

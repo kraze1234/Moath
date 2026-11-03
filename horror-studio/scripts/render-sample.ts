@@ -11,15 +11,29 @@ import { renderProject, OUT_DIR } from "../server/render";
 const ROOT = path.resolve(import.meta.dirname, "..");
 const story = fs.readFileSync(path.join(ROOT, "samples/fahad.txt"), "utf8");
 const project = directStory(story, "القرية التي لا يأتيها الفجر");
-// المثال بلا صوت راوٍ (المؤثرات موجودة)؛ أضف --voice لتجربة صوت espeak-ng
-const withVoice = process.argv.includes("--voice") && (await hasEspeak());
-project.narrationOff = !withVoice;
+// صوت الراوي: تسجيل حقيقي منظّف إن وُجد في samples/narration (مع توقيت كل مشهد وكل سطر)،
+// أو espeak-ng مع --voice، وإلا بلا راوٍ (المؤثرات موجودة دائمًا)
+const NAR = path.join(ROOT, "samples/narration");
+const recorded = fs.existsSync(path.join(NAR, "voice.m4a")) && !process.argv.includes("--no-recording");
+const withVoice = !recorded && process.argv.includes("--voice") && (await hasEspeak());
+project.narrationOff = !recorded && !withVoice;
+if (recorded) {
+  const al = JSON.parse(fs.readFileSync(path.join(NAR, "alignment.json"), "utf8"));
+  if (al.scenes.length !== project.scenes.length) throw new Error("عدد المشاهد لا يطابق alignment.json");
+  project.scenes.forEach((s, i) => {
+    const a = al.scenes[i];
+    Object.assign(s, { duration: a.duration, autoDuration: false, cues: a.cues, dialogueAt: a.dialogueAt });
+  });
+  Object.assign(project, { choicesSeconds: al.choicesSeconds, choicesPrompt: al.choicesPrompt });
+  fs.copyFileSync(path.join(NAR, "voice.m4a"), path.join(MEDIA_DIR, "sample-voice.m4a"));
+  project.voiceTrack = { url: "/media/sample-voice.m4a", duration: 0 };
+}
 
 if (withVoice) {
   for (const s of project.scenes) s.narration = await espeak(s.text.replace(/[«»]/g, ""), `sample-${s.id}`);
 }
 fs.writeFileSync(path.join(OUT_DIR, "sample.json"), JSON.stringify(project, null, 2));
-console.log(`${project.scenes.length} مشاهد — صوت الراوي: ${withVoice ? "espeak-ng" : "بدون"}`);
+console.log(`${project.scenes.length} مشاهد — صوت الراوي: ${recorded ? "تسجيل samples/narration" : withVoice ? "espeak-ng" : "بدون"}`);
 
 // خادم مؤقت يقدّم ملفات الصوت للمتصفح أثناء التصوير
 const app = express();

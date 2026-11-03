@@ -137,6 +137,8 @@ export type Scene = {
   props: PropItem[];
   sfx: SfxId[];
   narration: Clip | null;                // صوت الراوي لهذا المشهد
+  cues?: { t: number; text: string }[];  // أسطر الترجمة بتوقيت النطق (ثوانٍ من بداية المشهد)؛ بدونها تُوزّع تلقائيًا
+  dialogueAt?: number;                   // متى يظهر الحوار (ثوانٍ من بداية المشهد)
 };
 
 export type Project = {
@@ -147,6 +149,9 @@ export type Project = {
   ambienceVolume: number;
   narrationOff: boolean;                 // بلا صوت راوٍ بشري؛ المؤثرات وصوت الخلفية تبقى
   choices: string[];                     // خياران يظهران في النهاية (فارغ = بلا خيارات)
+  choicesPrompt?: string;                // سؤال يظهر فوق الخيارين
+  choicesSeconds?: number;               // مدة شاشة الخيارين
+  voiceTrack?: Clip | null;              // تسجيل راوٍ واحد للقصة كلها يبدأ بعد شاشة العنوان
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 9);

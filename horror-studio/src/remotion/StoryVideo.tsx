@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { AbsoluteFill, Audio, Freeze, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { FPS, Project, SfxId } from "../shared/types";
-import { CHOICE_SECONDS, TITLE_SECONDS, hasChoices, sceneFrames } from "../shared/timing";
+import { TITLE_SECONDS, choiceFrames, hasChoices, sceneFrames } from "../shared/timing";
 import { SceneView } from "./SceneView";
 
 const LOOPING: SfxId[] = ["wind", "drone", "crickets", "heartbeat", "car", "tick"];
@@ -35,7 +35,7 @@ function Title({ title }: { title: string }) {
 }
 
 // الخياران في النهاية: مستطيلان بحواف مدورة، الأول بنفسجي غامق
-function Choices({ choices }: { choices: string[] }) {
+function Choices({ choices, prompt }: { choices: string[]; prompt?: string }) {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const dim = interpolate(f, [0, 12], [0, 0.55], { extrapolateRight: "clamp" });
@@ -56,6 +56,11 @@ function Choices({ choices }: { choices: string[] }) {
   };
   return (
     <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})`, alignItems: "center", justifyContent: "center", gap: 46, direction: "rtl" }}>
+      {prompt && (
+        <div style={{ opacity: interpolate(f, [10, 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }), color: "#fff",
+          fontFamily: "Kufi, sans-serif", fontWeight: 800, fontSize: 60, lineHeight: 1.6, textAlign: "center", padding: "0 70px", marginBottom: 20,
+          textShadow: "3px 3px 0 #000" }}>{prompt}</div>
+      )}
       {choices.map(box)}
     </AbsoluteFill>
   );
@@ -64,12 +69,17 @@ function Choices({ choices }: { choices: string[] }) {
 export function StoryVideo({ project, absoluteMedia = "" }: { project: Project; absoluteMedia?: string }) {
   useFonts();
   const media = (u: string) => (u.startsWith("/") ? absoluteMedia + u : u);
+  // مع تسجيل الراوي تنخفض المؤثرات حتى يبقى الكلام واضحًا
+  const duck = !project.narrationOff && project.voiceTrack ? 0.45 : 1;
   let from = Math.round(TITLE_SECONDS * FPS);
   const total = from + project.scenes.reduce((n, s) => n + sceneFrames(s), 0);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       <Sequence durationInFrames={from}><Title title={project.title} /></Sequence>
-      {project.ambience && <Audio src={sfxUrl(project.ambience)} loop volume={project.ambienceVolume} />}
+      {!project.narrationOff && project.voiceTrack && (
+        <Sequence from={from}><Audio src={media(project.voiceTrack.url)} /></Sequence>
+      )}
+      {project.ambience && <Audio src={sfxUrl(project.ambience)} loop volume={project.ambienceVolume * duck} />}
       {project.scenes.map((s) => {
         const d = sceneFrames(s);
         const start = from;
@@ -79,18 +89,18 @@ export function StoryVideo({ project, absoluteMedia = "" }: { project: Project; 
             <SceneView scene={s} />
             {!project.narrationOff && s.narration && <Audio src={media(s.narration.url)} />}
             {s.sfx.filter((x) => x !== project.ambience).map((x) => (
-              <Audio key={x} src={sfxUrl(x)} volume={VOLUME[x]} loop={LOOPING.includes(x)} />
+              <Audio key={x} src={sfxUrl(x)} volume={VOLUME[x] * duck} loop={LOOPING.includes(x)} />
             ))}
           </Sequence>
         );
       })}
       {hasChoices(project) && (
-        <Sequence from={total} durationInFrames={Math.round(CHOICE_SECONDS * FPS)}>
+        <Sequence from={total} durationInFrames={choiceFrames(project)}>
           <Freeze frame={sceneFrames(project.scenes[project.scenes.length - 1]) - 1}>
             <SceneView scene={project.scenes[project.scenes.length - 1]} hideText />
           </Freeze>
-          <Choices choices={project.choices} />
-          <Audio src={sfxUrl("heartbeat")} volume={0.8} loop />
+          <Choices choices={project.choices} prompt={project.choicesPrompt} />
+          <Audio src={sfxUrl("heartbeat")} volume={0.8 * duck} loop />
         </Sequence>
       )}
     </AbsoluteFill>

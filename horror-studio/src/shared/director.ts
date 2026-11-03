@@ -200,7 +200,7 @@ export function directStory(story: string, title = "قصة رعب"): Project {
     }
     if (clock) {
       const t = s.match(/(\d{1,2})[:٫](\d{2})/);
-      const t3 = has(s, /الثالثة|الثلاث/) ? "3:00" : null;
+      const t3 = has(s, /الثالثة|الثلاث|ساعة ثلاث/) ? "3:00" : null;
       props.push({ kind: "clock", state: t ? `${t[1]}:${t[2]}` : t3 ?? "3:00" });
       sfx.push("tick");
       camera = "zoomIn";

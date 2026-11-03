@@ -26,6 +26,9 @@ npm run dev        # الخادم على 3001 والواجهة على http://loc
 4. اضغط **تصدير MP4** وانتظر شريط التقدم، ثم نزّل الفيديو.
 
 مثال كامل من سطر الأوامر بلا واجهة: `npm run sample` (بالمؤثرات بلا راوٍ؛ أو `npm run sample -- --voice` بصوت espeak-ng) ← `data/outputs/sample.mp4` (نسخة جاهزة منه في `samples/sample.mp4`).
+المثال يستخدم تسجيل الراوي الحقيقي في `samples/narration/voice.m4a` (منظّف) مع `alignment.json` الذي يحدد مدة كل مشهد ووقت ظهور كل سطر ترجمة والحوار وشاشة الخيارين.
+تنظيف تسجيل جديد (كتم أصوات الفم والمضغ، وخفض الأنفاس 8dB، وتوحيد المستوى): `python3 scripts/clean-voice.py <التسجيل> <الناتج.wav> <تقرير.json> <كلمات.json>`.
+
 لقطات ثابتة سريعة من كل مشهد للمراجعة: `npx tsx scripts/stills.ts`.
 
 تشغيل نسخة الإنتاج على منفذ واحد: `npm run build && npm start` ثم افتح http://localhost:3001.

@@ -12,10 +12,11 @@ export const sceneFrames = (s: Scene) => Math.max(15, Math.round(sceneSeconds(s)
 
 export const TITLE_SECONDS = 2.2;
 export const CHOICE_SECONDS = 4.5;
+export const choiceFrames = (p: Project) => Math.round((p.choicesSeconds ?? CHOICE_SECONDS) * FPS);
 export const hasChoices = (p: Project) => (p.choices ?? []).filter((c) => c.trim()).length === 2;
 
 export function totalFrames(p: Project): number {
-  return Math.round(TITLE_SECONDS * FPS) + p.scenes.reduce((n, s) => n + sceneFrames(s), 0) + (hasChoices(p) ? Math.round(CHOICE_SECONDS * FPS) : 0);
+  return Math.round(TITLE_SECONDS * FPS) + p.scenes.reduce((n, s) => n + sceneFrames(s), 0) + (hasChoices(p) ? choiceFrames(p) : 0);
 }
 
 // يقسم الترجمة إلى أسطر قصيرة توزَّع على زمن النطق
