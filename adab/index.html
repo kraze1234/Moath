@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>آداب السلوك الرقمي</title>
+<style>
+@font-face{font-family:"Kufi";src:url(fonts/kufi-ar.woff2) format("woff2");font-weight:100 900;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Kufi";src:url(fonts/kufi-la.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:"Plex";src:url(fonts/plex-600-ar.woff2) format("woff2");font-weight:600;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#111;overflow:hidden}
+#wrap{position:fixed;inset:0;display:grid;place-items:center}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;flex:none;background:#f3f8fd;transform-origin:center;color:#10285a}
+#stage *{animation-fill-mode:both;animation-play-state:paused}
+
+/* الصفحات: --bg لون الصفحة، --c لون الفئة، --hi لون أفتح للكلام المنطوق */
+.p1{--bg:#f3f8fd;--c:#12306b;--hi:#cfe4ff}
+.p2{--bg:#fff4f4;--c:#df3a3a;--hi:#ffd3d3;--tint:#fde6e6}
+.p3{--bg:#f2f6ff;--c:#2563c9;--hi:#d3e2ff;--tint:#e3edff}
+.p4{--bg:#f2faf4;--c:#2e9e4f;--hi:#cfeed6;--tint:#e1f4e6}
+.p5{--bg:#f6fbf2;--c:#1f8a7a;--hi:#fff0b0}
+.p6{--bg:#12306b;--c:#ffffff}
+
+.scene{position:absolute;inset:0;opacity:0;background:radial-gradient(110% 90% at 50% 40%,#ffffff 0%,var(--bg) 70%)}
+.p6{background:radial-gradient(110% 90% at 50% 45%,#1d4590 0%,#12306b 70%);color:#fff}
+.content{position:absolute;inset:0}
+.zoom{position:absolute;inset:0;animation:kb linear}
+@keyframes kb{0%{transform:scale(1)}100%{transform:scale(1.03)}}
+@keyframes on{0%{opacity:0}100%{opacity:1}}
+@keyframes off{0%{opacity:1}100%{opacity:0}}
+@keyframes exit{0%{transform:scale(1);filter:blur(0);opacity:1}100%{transform:scale(.84);filter:blur(14px);opacity:0}}
+@keyframes fade{0%{opacity:0}100%{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes rise{0%{opacity:0;transform:translateY(40px)}100%{opacity:1;transform:none}}
+@keyframes draw{0%{stroke-dashoffset:var(--len)}100%{stroke-dashoffset:0}}
+@keyframes grow{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes blink{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+@keyframes jitter{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes sway{0%,100%{transform:perspective(1000px) rotateY(-20deg) rotateX(8deg)}50%{transform:perspective(1000px) rotateY(-8deg) rotateX(4deg)}}
+
+/* الخلفية الزخرفية */
+.bg{position:absolute;inset:0;pointer-events:none}
+.bg svg{position:absolute}
+
+/* الكلام المنطوق */
+.w{display:inline-block;animation:wordIn .45s cubic-bezier(.2,.9,.25,1.2)}
+@keyframes wordIn{0%{opacity:0;transform:translateY(26px) scale(.85);filter:blur(5px)}100%{opacity:1;transform:none;filter:blur(0)}}
+.say{position:relative;display:inline-block;isolation:isolate}
+.hl{position:absolute;inset:-4px -16px -2px;border-radius:18px;background:var(--hi);z-index:-1;transform-origin:right center}
+@keyframes sweep{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes hlOff{0%{opacity:1}100%{opacity:0}}
+
+/* الصفحة 1 */
+.title{position:absolute;top:40px;left:0;right:0;text-align:center;font-family:"Kufi";font-weight:800;line-height:1.35}
+.title .l1{font-size:88px;color:#12306b}
+.title .l2{font-size:88px;color:#1aa39a}
+.pill{position:absolute;top:330px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.pill .in{display:flex;align-items:center;gap:26px;background:linear-gradient(180deg,#1b3f86,#0f2a5e);color:#fff;font-family:"Kufi";font-weight:800;font-size:56px;
+  padding:14px 56px 22px;border-radius:999px;box-shadow:0 14px 30px rgba(15,42,94,.35),inset 0 2px 0 rgba(255,255,255,.25)}
+.pill .in{--hi:#3a68c4}
+.star{width:46px;height:46px;flex:none}
+.banner{position:absolute;top:478px;left:50%;width:1500px;margin-left:-750px}
+.banner .in{display:flex;align-items:center;gap:30px;background:linear-gradient(180deg,#f7fbff,#e6f1fc);border:3px solid #b9d4f1;border-radius:34px;
+  padding:22px 44px;box-shadow:0 12px 30px rgba(18,48,107,.12);font-family:"Kufi";font-weight:800;font-size:46px;color:#12306b}
+.banner .shield{width:120px;height:132px;flex:none}
+.fg{position:absolute}
+
+/* صفحات الفئات */
+.head{position:absolute;top:44px;left:0;right:0;display:flex;justify-content:center}
+.head .move{transform-origin:50% 0}
+@keyframes headUp{0%{transform:translateY(330px) scale(1.9)}100%{transform:none}}
+.head .in{display:flex;align-items:center;gap:22px;background:var(--c);color:#fff;font-family:"Kufi";font-weight:800;font-size:64px;
+  padding:10px 46px 18px 30px;border-radius:30px;box-shadow:0 14px 30px rgba(0,0,0,.18);--hi:rgba(255,255,255,.28)}
+.head .ic{width:78px;height:78px;border-radius:50%;background:#fff;display:grid;place-items:center;flex:none}
+.head .ic svg{width:56px;height:56px}
+.row{position:absolute;top:250px;left:70px;right:70px;display:flex;justify-content:space-between}
+.card{width:318px;display:flex;flex-direction:column;align-items:center;text-align:center}
+.disc{width:230px;height:230px;border-radius:50%;background:var(--tint);display:grid;place-items:center;position:relative;
+  box-shadow:0 14px 30px rgba(0,0,0,.08),inset 0 0 0 5px #fff}
+.disc>svg{width:180px;height:180px;overflow:visible}
+.ring{position:absolute;inset:-12px;border-radius:50%;border:6px solid var(--c);opacity:0}
+@keyframes ringOn{0%,100%{opacity:0;transform:scale(.9)}12%,88%{opacity:.7;transform:scale(1)}}
+.txt{margin-top:30px;font-family:"Kufi";font-weight:700;font-size:36px;line-height:1.6;color:#10285a}
+.txt .say{max-width:318px}
+
+/* تذكر دائمًا */
+.paper{position:absolute;top:150px;left:610px;width:1150px;height:720px;background:linear-gradient(180deg,#fbfef8,#eef7e8);border:3px solid #cfe5c6;border-radius:30px;
+  box-shadow:0 30px 60px rgba(31,80,60,.18);transform:rotate(-1.5deg);padding:70px 80px;text-align:center}
+.paper h2{font-family:"Kufi";font-weight:800;font-size:96px;color:#1f8a7a;line-height:1.3;display:inline-block}
+.paper .under{display:block;height:12px;margin:8px auto 40px;width:420px;border-radius:12px;background:#f4c542;transform-origin:right}
+.paper p{font-family:"Kufi";font-weight:700;font-size:56px;line-height:1.85;color:#12306b}
+.bulb{position:absolute;left:150px;top:220px;width:400px;height:560px}
+
+/* الختام */
+.thanks{position:absolute;inset:0;display:flex;flex-direction:column;gap:26px;align-items:center;justify-content:center;font-family:"Kufi";font-weight:800}
+.thanks .a{font-size:110px}
+.thanks .b{font-size:84px;color:#ffd977}
+
+/* الدمج بين الصفحات */
+.goo{position:absolute;inset:0;width:1920px;height:1080px;z-index:4;pointer-events:none}
+.goo circle{transform-box:fill-box;transform-origin:center;animation:blobGrow .7s cubic-bezier(.6,0,.3,1)}
+@keyframes blobGrow{0%{transform:scale(0)}100%{transform:scale(9)}}
+
+#ui{position:fixed;inset:auto 0 18px 0;display:flex;justify-content:center;gap:10px;z-index:5}
+#ui button{font:600 16px "Plex";border:0;border-radius:999px;padding:10px 20px;cursor:pointer;background:#fff;color:#12306b}
+#start{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(0,0,0,.45);cursor:pointer}
+#start div{font:800 34px "Kufi";color:#12306b;background:#fff;padding:22px 48px;border-radius:999px}
+body.render #ui,body.render #start{display:none}
+svg .tb{transform-box:fill-box}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <filter id="gooF" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="28"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 36 -14"/>
+    </filter>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0b2350" flood-opacity=".3"/></filter>
+    <linearGradient id="gScreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f8fe6"/><stop offset="1" stop-color="#2a63c4"/></linearGradient>
+    <linearGradient id="gFrame" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d5f9e"/><stop offset="1" stop-color="#14306a"/></linearGradient>
+    <linearGradient id="gBase" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe8f5"/><stop offset=".55" stop-color="#b6c6dd"/><stop offset="1" stop-color="#8197b8"/></linearGradient>
+    <linearGradient id="gBubble" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5aa1f2"/><stop offset="1" stop-color="#1f5fc4"/></linearGradient>
+    <linearGradient id="gShield" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2fb7ad"/><stop offset="1" stop-color="#127a85"/></linearGradient>
+    <radialGradient id="gBulb" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#fff8cf"/><stop offset=".45" stop-color="#ffd84d"/><stop offset="1" stop-color="#f0a91c"/></radialGradient>
+    <radialGradient id="gGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe680" stop-opacity=".85"/><stop offset="1" stop-color="#ffe680" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gScrew" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7b8494"/><stop offset=".45" stop-color="#e6ebf2"/><stop offset="1" stop-color="#5f6878"/></linearGradient>
+    <linearGradient id="gCap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#29457f"/><stop offset="1" stop-color="#0d1f45"/></linearGradient>
+  </defs></svg>
+
+  <section class="scene p1" data-in="0" data-out="1"><div class="bg"></div><div class="content"><div class="zoom" id="z1"></div></div></section>
+  <section class="scene p2" data-in="1" data-out="2"><div class="bg"></div><div class="content"><div class="zoom" id="z2"></div></div></section>
+  <section class="scene p3" data-in="2" data-out="3"><div class="bg"></div><div class="content"><div class="zoom" id="z3"></div></div></section>
+  <section class="scene p4" data-in="3" data-out="4"><div class="bg"></div><div class="content"><div class="zoom" id="z4"></div></div></section>
+  <section class="scene p5" data-in="4" data-out="5"><div class="bg"></div><div class="content"><div class="zoom" id="z5"></div></div></section>
+  <section class="scene p6" data-in="5"><div class="bg"></div><div class="content"><div class="zoom" id="z6"></div></div></section>
+</div></div>
+
+<div id="start"><div>▶ تشغيل</div></div>
+<div id="ui"><button id="play">⏸ إيقاف</button><button id="again">↺ من البداية</button></div>
+<audio id="voice" src="voice-cut.mp3" preload="auto"></audio>
+
+<script src="timeline.js"></script>
+<script>
+// TL وTR وMERGE وEND في timeline.js (يولّدها timeline.py)
+const SW = TR.map((t) => (t == null ? 0 : t + MERGE));
+const NEXT_BG = [null, "#fff4f4", "#f2f6ff", "#f2faf4", "#f6fbf2", "#12306b"];
+const stage = document.getElementById("stage");
+const audio = document.getElementById("voice");
+const NS = "http://www.w3.org/2000/svg";
+if (new URLSearchParams(location.search).has("render")) document.body.classList.add("render");
+
+// النص الظاهر (بلا تشكيل كما في الصورة)
+const TEXT = {
+  T1: "آداب السلوك الرقمي", T2: "في الفصل الافتراضي",
+  S1: "أخلاقي الرقمية تعكس شخصيتي",
+  S2: "التزم بالسلوك الرقمي الإيجابي لنجاحك التعليمي وأمانك الرقمي",
+  C1: "سلوكيات يجب تجنبها", C2: "المشاركة أثناء الحصة", C3: "الحضور والانضباط",
+  A1: "التنمر الإلكتروني على المعلمين أو الطلاب",
+  A2: "الإساءة أو التشهير أو استخدام الألفاظ غير اللائقة",
+  A3: "افتعال المشكلات بين الطلاب أو منسوبي المدرسة",
+  A4: "تسجيل أو تصوير الحصص الافتراضية ونشرها عبر وسائل التواصل الاجتماعي",
+  A5: "إرسال الصور والملفات والرسائل غير المتعلقة بالدرس أثناء الحصة",
+  B1: "أستأذن قبل المشاركة وأرفع يدي إلكترونيًا",
+  B2: "احرص على إغلاق الميكروفون عند عدم التحدث",
+  B3: "احترم مشاركات زملائك، وتقبل الآراء والنقد البناء",
+  B4: "استخدم الكاميرا عند الحاجة وفق تعليمات المعلم، وبمظهر مناسب",
+  B5: "تأكد من جودة الملفات قبل مشاركتها داخل الفصل الافتراضي",
+  D1: "احرص على الانضباط وحضور الحصص الافتراضية في الوقت المحدد",
+  D2: "انصرف بعد انتهاء الحصة، وانتقل للحصة التالية إن وجدت",
+  D3: "تجنب فتح أكثر من نافذة أثناء الحصة الافتراضية لتقليل التشتت",
+  D4: "لا تدخل بحساب طالب آخر، أو تنتحل شخصية غيرك",
+  R0: "تذكر دائمًا",
+  R1: "التزامك بالقواعد الرقمية يحميك ويحمي الآخرين، ويصنع بيئة تعلم آمنة ومثمرة للجميع.",
+  E1: "مع تحيات التوجيه الطلابي", E2: "ابتدائية حليمة السعدية",
+};
+// العنوان يُنطق مرة واحدة: يُقسم زمنه على سطريه بنسبة الحروف
+const letters = (w) => w.replace(/[ً-ْـ،.]/g, "").length;
+{
+  const [s, d] = TL.T, a = letters(TEXT.T1.replace(/ /g, "")), b = letters(TEXT.T2.replace(/ /g, ""));
+  TL.T1 = [s, (d * a) / (a + b)]; TL.T2 = [s + (d * a) / (a + b), (d * b) / (a + b)];
+}
+
+// "اسم مدة توقيت تأخير تكرار اتجاه" → حركة تبدأ مخفية قبل موعدها
+const A = (name, dur, delay, ease = "ease", iter = 1, dir = "normal") => `${name} ${dur}s ${ease} ${delay}s ${iter} ${dir} both`;
+const css = (list) => `animation:${list.join(",")}`;
+const anim = (el, list) => { el.style.animation = list.join(", "); };
+
+function words(el, key, highlight = true) {
+  const [s, d] = TL[key];
+  const ws = TEXT[key].split(" ");
+  const total = ws.reduce((n, w) => n + letters(w), 0);
+  let acc = 0;
+  ws.forEach((w, i) => {
+    const sp = document.createElement("span");
+    sp.className = "w"; sp.textContent = w;
+    sp.style.animation = A("wordIn", 0.45, s + (d * acc) / total - 0.1, "cubic-bezier(.2,.9,.25,1.2)");
+    acc += letters(w);
+    el.append(sp);
+    if (i < ws.length - 1) el.append(" ");
+  });
+  if (highlight) {
+    const hl = document.createElement("i");
+    hl.className = "hl";
+    hl.style.animation = `${A("sweep", d, s, "linear")}, hlOff .45s ease ${s + d + 0.15}s 1 normal forwards`;
+    el.prepend(hl);
+  }
+  return el;
+}
+const say = (key, hl = true) => words(Object.assign(document.createElement("span"), { className: "say" }), key, hl);
+const div = (cls, html = "") => Object.assign(document.createElement("div"), { className: cls, innerHTML: html });
+
+// ——— الخلفيات (مشاهد الصورة بلا ملامح الوجوه) ———
+const SVG = (w, h, body, style) => `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="${style}">${body}</svg>`;
+const leaf = (x, y, r, s, c = "#8cc7bd") => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">
+  <path d="M0 0 C 30 -60 80 -120 150 -170" stroke="${c}" stroke-width="5" fill="none"/>
+  ${[0.25, 0.45, 0.65, 0.85].map((t, i) => { const px = 150 * t, py = -170 * t; return `<ellipse cx="${px - 28}" cy="${py + 6}" rx="34" ry="13" transform="rotate(${-30 - i * 6} ${px - 28} ${py + 6})" fill="${c}"/><ellipse cx="${px + 22}" cy="${py + 18}" rx="32" ry="12" transform="rotate(${40 - i * 6} ${px + 22} ${py + 18})" fill="${c}" opacity=".8"/>`; }).join("")}</g>`;
+const girl = (x, y, shirt, hair) => `<g transform="translate(${x} ${y})"><rect x="-60" y="-55" width="120" height="110" rx="10" fill="#dcecff"/>
+  <path d="M-34 52 Q 0 10 34 52 Z" fill="${shirt}"/><path d="M-26 -8 Q -30 -44 0 -46 Q 30 -44 26 -8 L 30 20 L -30 20 Z" fill="${hair}"/>
+  <circle cx="0" cy="-14" r="20" fill="#f5c8a8"/></g>`;   // بلا ملامح
+const desk = (opacity) => `<g opacity="${opacity}">
+  <rect x="0" y="210" width="1100" height="34" rx="10" fill="#9cc0ea"/><rect x="0" y="240" width="1100" height="60" fill="#c9ddf3"/>
+  <g transform="translate(330 0)"><rect x="0" y="0" width="420" height="200" rx="16" fill="#2a4f97"/><rect x="14" y="14" width="392" height="172" rx="8" fill="#eaf3ff"/>
+    ${girl(80, 56, "#f2a6c8", "#5a3a2a")}${girl(210, 56, "#a8d0f0", "#3a2a22")}${girl(80, 140, "#c7b3ef", "#6b4630")}${girl(210, 140, "#9fe0c7", "#2e2018")}
+    <rect x="290" y="22" width="104" height="156" rx="8" fill="#d6e6f8"/>${[0, 1, 2, 3].map((i) => `<rect x="304" y="${36 + i * 34}" width="76" height="18" rx="6" fill="#fff"/>`).join("")}
+    <path d="M-40 212 L 460 212 L 430 200 L -10 200 Z" fill="#9fb3cf"/></g>
+  <g transform="translate(120 20)"><path d="M0 190 L 30 190 L 26 60 L 110 0" stroke="#2f62c2" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M90 -30 L 170 10 L 140 40 Z" fill="#2f62c2"/><ellipse cx="15" cy="192" rx="44" ry="10" fill="#2f62c2"/></g>
+  <g transform="translate(830 110)"><rect x="0" y="40" width="80" height="62" rx="10" fill="#2f62c2"/>${leaf(40, 40, -20, 0.5, "#5fb08a")}${leaf(40, 40, 20, 0.45, "#5fb08a")}</g>
+  <g transform="translate(940 130)"><rect x="0" y="40" width="58" height="66" rx="8" fill="#2f62c2"/>${["#e66", "#fc4", "#5b8", "#58e"].map((c, i) => `<rect x="${8 + i * 12}" y="${-10 + i * 6}" width="8" height="56" rx="3" fill="${c}"/>`).join("")}</g>
+  <g transform="translate(20 150)"><rect x="0" y="20" width="170" height="26" rx="6" fill="#2f62c2"/><rect x="10" y="-6" width="150" height="26" rx="6" fill="#4b80d6"/><rect x="0" y="46" width="180" height="16" rx="6" fill="#1f4a9a"/></g>
+  <g transform="translate(790 -10)"><path d="M0 0 L 60 -20 L 120 0 L 120 70 Q 120 130 60 160 Q 0 130 0 70 Z" fill="#2f62c2"/><path d="M30 70 L 55 95 L 95 45" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g>`;
+const laptopIcon = (o) => `<g opacity="${o}"><rect x="10" y="0" width="170" height="110" rx="10" fill="#2a63c4"/><rect x="22" y="12" width="146" height="86" rx="6" fill="#dbeafe"/>
+  <path d="M55 52 L 95 36 L 135 52 L 95 68 Z" fill="#12306b"/><rect x="0" y="110" width="190" height="14" rx="6" fill="#9fb3cf"/></g>`;
+const bubbleIcon = (o) => `<g opacity="${o}"><rect x="0" y="0" width="110" height="80" rx="22" fill="#2f73d8"/><path d="M24 78 L 18 104 L 46 80 Z" fill="#2f73d8"/>${[30, 55, 80].map((x) => `<circle cx="${x}" cy="40" r="8" fill="#fff"/>`).join("")}</g>`;
+const phonesIcon = (o) => `<g opacity="${o}"><path d="M20 90 Q 20 10 90 10 Q 160 10 160 90" stroke="#2f73d8" stroke-width="16" fill="none"/><rect x="4" y="80" width="38" height="70" rx="14" fill="#2f73d8"/><rect x="138" y="80" width="38" height="70" rx="14" fill="#2f73d8"/></g>`;
+const wifiIcon = (o) => `<g opacity="${o}">${[70, 48, 26].map((r, i) => `<path d="M${90 - r} ${100 - r * 0.25} Q 90 ${100 - r * 1.25} ${90 + r} ${100 - r * 0.25}" stroke="#12306b" stroke-width="14" fill="none" stroke-linecap="round"/>`).join("")}<circle cx="90" cy="102" r="10" fill="#12306b"/></g>`;
+
+const BGS = [
+  // 1: العنوان — أوراق على الحواف ومشهد المكتب باهتًا
+  `${SVG(400, 420, leaf(30, 400, 10, 1.6), "left:-40px;top:520px")}${SVG(400, 420, leaf(370, 400, -10, -1.6), "right:-40px;top:520px;transform:scaleX(-1)")}
+   ${SVG(1100, 300, desk(0.35), "left:410px;bottom:-10px")}`,
+  // 2: سلوكيات يجب تجنبها
+  `${SVG(1100, 300, desk(0.22), "left:410px;bottom:-30px")}${SVG(400, 420, leaf(30, 400, 0, 1.4), "left:-60px;top:330px")}
+   ${SVG(400, 420, leaf(30, 400, 0, 1.4), "right:-60px;top:330px;transform:scaleX(-1)")}${SVG(200, 140, laptopIcon(0.18), "left:40px;top:40px")}${SVG(200, 160, wifiIcon(0.15), "right:40px;top:30px")}`,
+  // 3: المشاركة أثناء الحصة
+  `${SVG(1100, 300, desk(0.2), "left:-160px;bottom:-30px")}${SVG(200, 170, phonesIcon(0.18), "right:60px;top:40px")}${SVG(140, 120, bubbleIcon(0.18), "left:60px;top:50px")}
+   ${SVG(400, 420, leaf(30, 400, 0, 1.3), "right:-60px;bottom:-40px;transform:scaleX(-1)")}`,
+  // 4: الحضور والانضباط
+  `${SVG(1100, 300, desk(0.2), "right:-160px;bottom:-30px")}${SVG(200, 160, wifiIcon(0.16), "left:50px;top:30px")}${SVG(200, 140, laptopIcon(0.16), "right:50px;top:40px")}
+   ${SVG(400, 420, leaf(30, 400, 0, 1.3), "left:-60px;bottom:-40px")}`,
+  // 5: تذكر دائمًا
+  `${SVG(400, 420, leaf(30, 400, 0, 1.5), "right:-60px;top:-60px;transform:scaleX(-1) rotate(180deg)")}${SVG(400, 420, leaf(30, 400, 0, 1.3), "left:-60px;bottom:-60px")}
+   ${SVG(200, 170, phonesIcon(0.14), "right:60px;bottom:40px")}${SVG(140, 120, bubbleIcon(0.15), "left:500px;top:40px")}`,
+  // 6: الختام
+  `${SVG(400, 420, leaf(30, 400, 0, 1.6, "#3a63a8"), "left:-60px;bottom:-60px")}${SVG(400, 420, leaf(30, 400, 0, 1.6, "#3a63a8"), "right:-60px;bottom:-60px;transform:scaleX(-1)")}
+   ${SVG(200, 140, laptopIcon(0.25), "left:120px;top:90px")}${SVG(200, 170, phonesIcon(0.25), "right:120px;top:80px")}`,
+];
+
+// ——— الصفحة 1 ———
+function page1() {
+  const z = document.getElementById("z1");
+  const [ts] = TL.T;
+  // العنوان
+  const t = div("title");
+  const l1 = div("l1"); l1.append(say("T1"));
+  const l2 = div("l2"); l2.append(say("T2"));
+  t.append(l1, l2); z.append(t);
+
+  // حاسوب ثلاثي الأبعاد: شاشة تنتقل من كتاب إلى قبعة التخرج
+  const flip = ts + 1.2;
+  const lap = div("fg", SVG(460, 360, `
+    <g filter="url(#sh)">
+      <path d="M40 300 L 420 300 L 455 340 L 5 340 Z" fill="url(#gBase)"/><rect x="190" y="306" width="80" height="10" rx="5" fill="#8a9cba"/>
+      <rect x="60" y="20" width="340" height="280" rx="18" fill="url(#gFrame)"/><rect x="76" y="36" width="308" height="248" rx="10" fill="url(#gScreen)"/>
+      <path d="M76 36 L 260 36 L 120 284 L 76 284 Z" fill="#fff" opacity=".08"/></g>
+    <g class="tb" style="transform-origin:center;${css([A("fade", 0.4, ts + 0.1), `flipOut .35s ease-in ${flip}s 1 normal forwards`])}">
+      <path d="M230 110 Q 180 90 128 104 L 128 232 Q 180 218 230 238 Z" fill="#fff"/><path d="M230 110 Q 280 90 332 104 L 332 232 Q 280 218 230 238 Z" fill="#f2f6ff"/>
+      ${[0, 1, 2, 3].map((i) => `<rect x="148" y="${130 + i * 22}" width="64" height="7" rx="3" fill="#9cb8e6"/><rect x="248" y="${130 + i * 22}" width="64" height="7" rx="3" fill="#9cb8e6"/>`).join("")}
+      <path d="M230 110 L 230 238" stroke="#9cb8e6" stroke-width="4"/></g>
+    <g class="tb" style="transform-origin:center;${css([A("pop", 0.5, flip + 0.3, "cubic-bezier(.2,.9,.25,1.3)")])}">
+      <path d="M230 150 L 330 190 L 230 230 L 130 190 Z" fill="url(#gCap)"/><path d="M168 205 L 168 250 Q 230 285 292 250 L 292 205 L 230 230 Z" fill="#1a3266"/>
+      <path d="M230 190 L 300 210 L 300 258" stroke="#f4c542" stroke-width="5" fill="none"/><circle cx="300" cy="262" r="9" fill="#f4c542"/></g>`,
+    ""), { style: "" });
+  lap.style.cssText = `left:20px;top:40px;width:460px;height:360px;scale:.7;transform-origin:0 0;${css([A("pop", 0.6, ts + 0.05, "cubic-bezier(.2,.9,.25,1.2)"), A("sway", 5, ts + 0.6, "ease-in-out", "infinite")])}`;
+  z.append(lap);
+
+  // فقاعة كلام ثلاثية الأبعاد بنقاط ترتفع وتنزل بالتتابع
+  const bub = div("fg", SVG(220, 190, `<g filter="url(#sh)"><rect x="10" y="10" width="200" height="130" rx="40" fill="url(#gBubble)"/><path d="M50 136 L 36 182 L 92 138 Z" fill="#2a6ad2"/>
+    <rect x="30" y="20" width="160" height="34" rx="17" fill="#fff" opacity=".18"/></g>
+    ${[60, 110, 160].map((x, i) => `<circle class="tb" cx="${x}" cy="76" r="14" fill="#fff" style="${css([A("bob", 0.9, ts + 0.8 + i * 0.18, "ease-in-out", "infinite")])}"/>`).join("")}`));
+  bub.style.cssText = `left:330px;top:24px;width:220px;height:190px;scale:.7;transform-origin:0 0;${css([A("pop", 0.5, ts + 0.4, "cubic-bezier(.2,.9,.25,1.3)")])}`;
+  z.append(bub);
+
+  // سماعة وشبكة ثنائية الأبعاد
+  const ph = div("fg", SVG(200, 170, phonesIcon(1)));
+  ph.style.cssText = `right:255px;top:70px;width:200px;height:170px;scale:.85;transform-origin:100% 0;${css([A("pop", 0.5, ts + 0.3), A("bob", 2.4, ts + 1, "ease-in-out", "infinite")])}`;
+  const wf = div("fg", SVG(200, 160, `${[70, 48, 26].map((r, i) => `<path d="M${90 - r} ${100 - r * 0.25} Q 90 ${100 - r * 1.25} ${90 + r} ${100 - r * 0.25}" stroke="#12306b" stroke-width="14" fill="none" stroke-linecap="round" style="${css([A("blink", 1.6, ts + 0.8 + (2 - i) * 0.25, "ease-in-out", "infinite")])}"/>`).join("")}<circle cx="90" cy="102" r="11" fill="#12306b"/>`));
+  wf.style.cssText = `right:45px;top:80px;width:200px;height:160px;scale:.9;transform-origin:100% 0;${css([A("pop", 0.5, ts + 0.5)])}`;
+  z.append(ph, wf);
+
+  // «أخلاقي الرقمية تعكس شخصيتي»: شريط كحلي بنجمتين
+  const star = `<svg class="star" viewBox="0 0 50 50"><path d="M25 3 L31 18 L47 19 L35 30 L39 46 L25 37 L11 46 L15 30 L3 19 L19 18 Z" fill="#f4c542"/></svg>`;
+  const [s1] = TL.S1;
+  const pill = div("pill"); const pin = div("in");
+  pin.innerHTML = star; pin.append(say("S1")); pin.insertAdjacentHTML("beforeend", star);
+  pin.style.animation = A("pop", 0.55, s1 - 0.25, "cubic-bezier(.2,.9,.25,1.2)");
+  pill.append(pin); z.append(pill);
+
+  // الدرع: يظهر فارغًا ثم تُرسم علامة الصح، ثم الكلام بجانبه
+  const [s2] = TL.S2;
+  const ban = div("banner"); const bin = div("in");
+  bin.innerHTML = `<svg class="shield" viewBox="0 0 120 132"><g filter="url(#sh)"><path d="M60 6 L 112 24 L 112 64 Q 112 108 60 128 Q 8 108 8 64 L 8 24 Z" fill="url(#gShield)"/>
+    <path d="M60 18 L 100 32 L 100 64 Q 100 98 60 114 Z" fill="#fff" opacity=".12"/></g>
+    <path d="M34 66 L 54 86 L 88 46" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round" style="--len:90;stroke-dasharray:90;${css([A("draw", 0.45, s2 - 0.05, "ease-out")])}"/></svg>`;
+  bin.firstChild.style.animation = A("pop", 0.5, s2 - 0.65, "cubic-bezier(.2,.9,.25,1.3)");
+  bin.append(say("S2"));
+  bin.style.animation = A("rise", 0.5, s2 - 0.7, "cubic-bezier(.2,.9,.25,1.1)");
+  ban.append(bin); z.append(ban);
+}
+const flipKF = document.createElement("style");
+flipKF.textContent = "@keyframes flipOut{0%{transform:scaleX(1);opacity:1}100%{transform:scaleX(0);opacity:0}}";
+document.head.append(flipKF);
+
+// ——— أيقونات البنود (بنفس أشكال الصورة) ———
+const ICONS = {
+  // تنمر: وجه يبدأ عاديًا ثم يغضب ويهتز
+  A1: (s, c) => `<g class="tb" style="transform-origin:center;${css([A("shake", 0.18, s + 0.9, "ease-in-out", "infinite")])}">
+      <circle cx="100" cy="100" r="70" fill="${c}"/><circle cx="100" cy="100" r="70" fill="#7a0d0d" style="opacity:0;${css([`dark .4s ease ${s + 0.7}s 1 normal both`])}"/>
+      <g style="${css([`off .2s ease ${s + 0.65}s 1 normal both`])}"><circle cx="76" cy="88" r="8" fill="#fff"/><circle cx="124" cy="88" r="8" fill="#fff"/><rect x="74" y="124" width="52" height="9" rx="4" fill="#fff"/></g>
+      <g style="${css([A("fade", 0.2, s + 0.65)])}"><path d="M64 78 L 86 90 L 64 102 M136 78 L 114 90 L 136 102" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M70 138 Q 100 112 130 138" stroke="#fff" stroke-width="9" fill="none" stroke-linecap="round"/></g></g>`,
+  // إساءة: مكبر صوت وخطوط الصوت تظهر وتختفي
+  A2: (s, c) => `<g><path d="M40 82 L 40 118 L 70 118 L 120 148 L 120 52 L 70 82 Z" fill="${c}"/><rect x="58" y="118" width="18" height="34" rx="6" fill="${c}"/>
+      ${[[136, 70, 160, 56], [140, 100, 170, 100], [136, 130, 160, 144]].map(([x1, y1, x2, y2], i) => `<path d="M${x1} ${y1} L ${x2} ${y2}" stroke="${c}" stroke-width="10" stroke-linecap="round" style="${css([A("blink", 0.9, s + 0.3 + i * 0.2, "ease-in-out", "infinite")])}"/>`).join("")}</g>`,
+  // افتعال مشكلات: شخص يعصّب وعلامة تعجب تنبض
+  A3: (s, c) => `<g class="tb" style="transform-origin:center;${css([A("jitter", 0.16, s + 0.8, "linear", "infinite")])}">
+      <circle cx="86" cy="80" r="30" fill="${c}"/><path d="M36 160 Q 36 116 86 116 Q 136 116 136 160 Z" fill="${c}"/>
+      <path d="M68 76 L 80 82 M104 76 L 92 82" stroke="#fff" stroke-width="6" stroke-linecap="round" style="${css([A("fade", 0.2, s + 0.7)])}"/></g>
+      <g class="tb" style="transform-origin:center;${css([A("pulse", 0.5, s + 0.6, "ease-in-out", "infinite")])}"><rect x="146" y="44" width="16" height="62" rx="8" fill="${c}"/><circle cx="154" cy="124" r="10" fill="${c}"/></g>`,
+  // تسجيل ونشر: كاميرا فيديو ثم يظهر شعار تواصل اجتماعي
+  A4: (s, c, d) => `<g><rect x="26" y="66" width="104" height="74" rx="16" fill="${c}"/><path d="M130 92 L 170 70 L 170 136 L 130 114 Z" fill="${c}"/><circle cx="52" cy="86" r="7" fill="#fff"/></g>
+      <g class="tb" style="transform-origin:center;${css([A("pop", 0.5, s + d * 0.55, "cubic-bezier(.2,.9,.25,1.4)")])}">
+        <rect x="118" y="14" width="74" height="74" rx="20" fill="#14141c"/><path d="M146 34 L 146 64 Q 146 72 138 72 Q 128 72 128 62 Q 128 54 138 54" stroke="#25f4ee" stroke-width="7" fill="none" stroke-linecap="round" transform="translate(-2 -2)"/>
+        <path d="M146 34 L 146 64 Q 146 72 138 72 Q 128 72 128 62 Q 128 54 138 54" stroke="#fe2c55" stroke-width="7" fill="none" stroke-linecap="round" transform="translate(2 2)"/>
+        <path d="M146 34 L 146 64 Q 146 72 138 72 Q 128 72 128 62 Q 128 54 138 54 M146 34 Q 150 46 166 48" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/></g>`,
+  // إرسال رسائل: فقاعة بنقاط ترقص
+  A5: (s, c) => `<g><rect x="30" y="44" width="140" height="100" rx="26" fill="${c}"/><path d="M62 142 L 54 172 L 92 144 Z" fill="${c}"/>
+      ${[70, 100, 130].map((x, i) => `<circle class="tb" cx="${x}" cy="94" r="11" fill="#fff" style="${css([A("bob", 0.8, s + 0.2 + i * 0.15, "ease-in-out", "infinite")])}"/>`).join("")}</g>`,
+  // استئذان: يد ترتفع وتنزل
+  B1: (s, c) => `<g class="tb" style="${css([A("bob", 0.8, s + 0.2, "ease-in-out", "infinite")])}">
+      <path d="M70 160 L 70 76 Q 70 64 80 64 Q 90 64 90 76 L 90 110 L 90 50 Q 90 40 100 40 Q 110 40 110 50 L 110 108 L 110 56 Q 110 46 120 46 Q 130 46 130 56 L 130 112 L 130 72 Q 130 62 140 62 Q 150 62 150 72 L 150 130 Q 150 170 110 170 L 90 170 Q 74 170 62 150 L 40 116 Q 34 104 44 100 Q 54 96 62 108 L 70 120" fill="${c}"/></g>`,
+  // ميكروفون مغلق + زر الفأرة يُضغط
+  B2: (s, c) => `<g><rect x="70" y="30" width="44" height="80" rx="22" fill="${c}"/><path d="M54 92 Q 54 136 92 136 Q 130 136 130 92" stroke="${c}" stroke-width="10" fill="none"/>
+      <path d="M92 136 L 92 160 M72 162 L 112 162" stroke="${c}" stroke-width="10" stroke-linecap="round"/><path d="M44 40 L 150 150" stroke="${c}" stroke-width="10" stroke-linecap="round"/>
+      <path d="M44 40 L 150 150" stroke="var(--tint)" stroke-width="4" stroke-linecap="round" transform="translate(-6 6)"/></g>
+      <g class="tb" style="transform-origin:center;${css([A("pop", 0.4, s + 0.5, "cubic-bezier(.2,.9,.25,1.4)")])}">
+        <rect x="132" y="112" width="50" height="74" rx="25" fill="#fff" stroke="${c}" stroke-width="6"/><path d="M157 112 L 157 140 M132 140 L 182 140" stroke="${c}" stroke-width="5"/>
+        <path d="M135 140 L 135 136 Q 135 115 155 114 L 155 138 Z" fill="${c}" style="${css([A("blink", 0.7, s + 0.9, "ease-in-out", "infinite")])}"/></g>`,
+  // احترام المشاركات: شخصان، أحدهما يرفع يده
+  B3: (s, c) => `<g><circle cx="132" cy="70" r="24" fill="${c}" opacity=".75"/><path d="M92 150 Q 92 104 132 104 Q 172 104 172 150 Z" fill="${c}" opacity=".75"/>
+      <circle cx="76" cy="84" r="28" fill="${c}"/><path d="M28 168 Q 28 118 76 118 Q 124 118 124 168 Z" fill="${c}"/>
+      <g class="tb" style="transform-origin:0% 100%;${css([`raise .6s ease-out ${s + 0.4}s 1 normal both`, A("wave", 0.5, s + 1.0, "ease-in-out", "infinite", "alternate")])}">
+        <rect x="34" y="62" width="18" height="66" rx="9" fill="${c}"/></g></g>`,
+  // الكاميرا: النقطة على اليمين تصير حمراء وتومض
+  B4: (s, c) => `<g><rect x="26" y="62" width="148" height="104" rx="18" fill="${c}"/><rect x="66" y="44" width="54" height="26" rx="8" fill="${c}"/>
+      <circle cx="100" cy="114" r="32" fill="#fff"/><circle cx="100" cy="114" r="20" fill="${c}"/>
+      <circle cx="152" cy="84" r="9" fill="#fff"/><circle cx="152" cy="84" r="9" fill="#e53935" style="${css([A("blink", 0.8, s + 0.6, "ease-in-out", "infinite")])}"/></g>`,
+  // الملف: الخطوط تظهر بعد فترة
+  B5: (s, c, d) => `<g><path d="M52 24 L 124 24 L 156 56 L 156 176 L 52 176 Z" fill="#fff" stroke="${c}" stroke-width="10" stroke-linejoin="round"/><path d="M124 24 L 124 56 L 156 56" stroke="${c}" stroke-width="10" fill="none" stroke-linejoin="round"/>
+      ${[86, 112, 138].map((y, i) => `<rect class="tb" x="74" y="${y}" width="${i === 2 ? 44 : 62}" height="11" rx="5" fill="${c}" style="transform-origin:100% 50%;${css([A("grow", 0.4, s + d * 0.4 + i * 0.35, "ease-out")])}"/>`).join("")}</g>`,
+  // التقويم: تظهر علامة الصح
+  D1: (s, c) => `<g><rect x="30" y="40" width="140" height="132" rx="18" fill="#fff" stroke="${c}" stroke-width="10"/><rect x="30" y="40" width="140" height="36" rx="14" fill="${c}"/>
+      <rect x="62" y="24" width="12" height="32" rx="6" fill="${c}"/><rect x="126" y="24" width="12" height="32" rx="6" fill="${c}"/>
+      <path d="M68 122 L 92 146 L 136 98" stroke="${c}" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round" style="--len:110;stroke-dasharray:110;${css([A("draw", 0.5, s + 0.8, "ease-out")])}"/></g>`,
+  // الباب ينفتح ثم يظهر السهم
+  D2: (s, c) => `<g><rect x="40" y="26" width="86" height="150" rx="6" fill="none" stroke="${c}" stroke-width="10"/>
+      <g class="tb" style="transform-origin:0% 50%;${css([`doorOpen .7s ease-in-out ${s + 0.3}s 1 normal both`])}"><rect x="45" y="31" width="76" height="140" fill="${c}"/><circle cx="108" cy="104" r="7" fill="#fff"/></g>
+      <g style="${css([`arrowIn .5s ease-out ${s + 1.0}s 1 normal both`])}"><path d="M110 100 L 170 100" stroke="${c}" stroke-width="12" stroke-linecap="round"/><path d="M152 80 L 174 100 L 152 120" stroke="${c}" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g>`,
+  // نوافذ: المربعات تظهر ورا بعض
+  D3: (s, c) => `<g><rect x="26" y="36" width="148" height="132" rx="16" fill="#fff" stroke="${c}" stroke-width="10"/><rect x="26" y="36" width="148" height="30" rx="12" fill="${c}"/>
+      ${[0, 1, 2].map((i) => `<circle cx="${46 + i * 16}" cy="51" r="4" fill="#fff"/>`).join("")}
+      ${[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => `<rect class="tb" x="${48 + (i % 3) * 38}" y="${80 + Math.floor(i / 3) * 28}" width="28" height="20" rx="4" fill="${c}" style="transform-origin:center;${css([A("pop", 0.3, s + 0.3 + i * 0.22)])}"/>`).join("")}</g>`,
+  // حساب طالب آخر: علامة التبديل على صدر الشخص
+  D4: (s, c) => `<g><circle cx="100" cy="62" r="34" fill="${c}"/><path d="M34 176 Q 34 108 100 108 Q 166 108 166 176 Z" fill="${c}"/>
+      <g class="tb" style="transform-origin:center;${css([A("pop", 0.4, s + 0.5), A("spin", 2.4, s + 1, "linear", "infinite")])}">
+        <circle cx="100" cy="146" r="24" fill="#fff"/><path d="M86 140 A 15 15 0 0 1 112 136 M114 152 A 15 15 0 0 1 88 156" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M108 128 L 114 137 L 104 140 M92 164 L 86 155 L 96 152" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g></g>`,
+};
+const KF = document.createElement("style");
+KF.textContent = `@keyframes dark{0%{opacity:0}100%{opacity:.35}}
+@keyframes raise{0%{transform:rotate(150deg) translate(0,0)}100%{transform:rotate(0)}}
+@keyframes wave{0%{transform:rotate(-8deg)}100%{transform:rotate(8deg)}}
+@keyframes doorOpen{0%{transform:scaleX(1)}100%{transform:scaleX(.3) skewY(-8deg)}}
+@keyframes arrowIn{0%{opacity:0;transform:translateX(-30px)}100%{opacity:1;transform:none}}`;
+document.head.append(KF);
+const HEAD_ICONS = {
+  C1: (c) => `<svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="${c}" stroke-width="7"/><path d="M15 15 L 45 45" stroke="${c}" stroke-width="7"/></svg>`,
+  C2: (c) => `<svg viewBox="0 0 60 60"><rect x="6" y="12" width="48" height="32" rx="12" fill="${c}"/><path d="M16 42 L 12 54 L 26 44 Z" fill="${c}"/>${[20, 30, 40].map((x) => `<circle cx="${x}" cy="28" r="4" fill="#fff"/>`).join("")}</svg>`,
+  C3: (c) => `<svg viewBox="0 0 60 60"><circle cx="30" cy="33" r="20" fill="none" stroke="${c}" stroke-width="6"/><path d="M30 22 L 30 34 L 38 38" stroke="${c}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M10 14 L 18 8 M50 14 L 42 8" stroke="${c}" stroke-width="5" stroke-linecap="round"/></svg>`,
+};
+
+// صفحة فئة: العنوان يظهر كبيرًا في الوسط ثم يصغر ويصعد، ثم البنود في دوائر بالتتابع
+function categoryPage(zid, head, items, color) {
+  const z = document.getElementById(zid);
+  const [hs, hd] = TL[head];
+  const h = div("head"), mv = div("move"), hin = div("in");
+  hin.innerHTML = `<span class="ic">${HEAD_ICONS[head](color)}</span>`;
+  hin.append(say(head));
+  hin.style.animation = A("pop", 0.55, hs - 0.3, "cubic-bezier(.2,.9,.25,1.2)");
+  mv.style.animation = A("headUp", 0.8, hs + hd + 0.2, "cubic-bezier(.5,0,.2,1)");
+  mv.append(hin); h.append(mv); z.append(h);
+  const row = div("row");
+  if (items.length === 4) Object.assign(row.style, { left: "200px", right: "200px" });
+  items.forEach((k) => {
+    const [s, d] = TL[k];
+    const card = div("card");
+    const disc = div("disc", `<span class="ring" style="${css([`ringOn ${d + 0.4}s ease ${s}s 1 normal both`])}"></span>${SVG(200, 200, ICONS[k](s, color, d), "position:static;width:180px;height:180px;overflow:visible")}`);
+    disc.style.animation = A("pop", 0.5, s - 0.3, "cubic-bezier(.2,.9,.25,1.25)");
+    const txt = div("txt"); txt.append(say(k));
+    card.append(disc, txt);
+    row.append(card);
+  });
+  z.append(row);
+}
+
+// تذكر دائمًا: ورقة بجانبها مصباح ثلاثي الأبعاد
+function page5() {
+  const z = document.getElementById("z5");
+  const [rs] = TL.R0;
+  const paper = div("paper");
+  paper.style.animation = A("rise", 0.7, SW[4] + 0.1, "cubic-bezier(.2,.9,.25,1.1)");
+  const h2 = document.createElement("h2"); h2.append(say("R0"));
+  const under = div("under"); under.style.animation = A("grow", 0.6, rs + 0.6, "ease-out");
+  const p = document.createElement("p"); p.append(say("R1"));
+  paper.append(h2, under, p); z.append(paper);
+  const bulb = div("fg bulb", SVG(400, 560, `
+    <circle cx="200" cy="210" r="190" fill="url(#gGlow)" class="tb" style="transform-origin:center;opacity:0;${css([A("fade", 0.4, rs), A("pulse", 1.6, rs + 0.4, "ease-in-out", "infinite")])}"/>
+    <g filter="url(#sh)"><path d="M200 60 C 110 60 70 130 80 190 C 90 250 140 270 150 330 L 250 330 C 260 270 310 250 320 190 C 330 130 290 60 200 60 Z" fill="url(#gBulb)"/>
+      <path d="M150 110 C 120 130 110 170 118 200" stroke="#fff" stroke-width="16" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M172 330 L 172 250 Q 200 220 228 250 L 228 330" stroke="#e08a12" stroke-width="7" fill="none"/>
+      <rect x="146" y="330" width="108" height="26" rx="10" fill="url(#gScrew)"/><rect x="150" y="356" width="100" height="24" rx="10" fill="url(#gScrew)"/>
+      <rect x="156" y="380" width="88" height="22" rx="10" fill="url(#gScrew)"/><path d="M168 402 L 232 402 Q 224 430 200 432 Q 176 430 168 402 Z" fill="#4a5262"/></g>
+    ${[[-150, -40], [-120, -150], [0, -190], [120, -150], [150, -40]].map(([dx, dy], i) => `<path d="M${200 + dx * 0.78} ${210 + dy * 0.78} L ${200 + dx} ${210 + dy}" stroke="#f4c542" stroke-width="10" stroke-linecap="round" style="${css([A("blink", 1.2, rs + 0.3 + i * 0.1, "ease-in-out", "infinite")])}"/>`).join("")}`));
+  bulb.style.animation = A("pop", 0.6, rs - 0.3, "cubic-bezier(.2,.9,.25,1.25)");
+  z.append(bulb);
+}
+
+function page6() {
+  const z = document.getElementById("z6");
+  const t = div("thanks"); const a = div("a"), b = div("b");
+  a.append(say("E1", false)); b.append(say("E2", false));
+  t.append(a, b); z.append(t);
+}
+
+function build() {
+  page1();
+  categoryPage("z2", "C1", ["A1", "A2", "A3", "A4", "A5"], "#df3a3a");
+  categoryPage("z3", "C2", ["B1", "B2", "B3", "B4", "B5"], "#2563c9");
+  categoryPage("z4", "C3", ["D1", "D2", "D3", "D4"], "#2e9e4f");
+  page5(); page6();
+  document.querySelectorAll(".scene").forEach((sc, i) => {
+    sc.querySelector(".bg").innerHTML = BGS[i];
+    const tin = SW[+sc.dataset.in], out = sc.dataset.out;
+    sc.style.animation = out ? `on .01s linear ${tin}s 1 normal both, off .01s linear ${SW[+out]}s 1 normal forwards` : `on .01s linear ${tin}s 1 normal both`;
+    if (out) sc.querySelector(".content").style.animation = `exit .5s cubic-bezier(.5,0,.8,.4) ${TR[+out]}s 1 normal forwards`;
+    sc.querySelector(".zoom").style.animation = A("kb", (out ? SW[+out] : END) - tin, tin, "linear");
+  });
+  // الدمج: بقع بلون الصفحة التالية تكبر وتلتحم، ثم غطاء صلب حتى لا تظهر فجوة
+  const pts = [[960, 540], [320, 260], [1620, 300], [420, 860], [1520, 840], [960, 140], [960, 960], [140, 560], [1780, 560]];
+  for (let k = 1; k < TR.length; k++) {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "goo"); svg.setAttribute("viewBox", "0 0 1920 1080");
+    svg.style.animation = `on .01s linear ${TR[k]}s 1 normal both, off .3s ease ${SW[k] + 0.05}s 1 normal forwards`;
+    svg.innerHTML = `<rect width="1920" height="1080" fill="${NEXT_BG[k]}" style="${css([A("fade", 0.18, TR[k] + 0.42, "linear")])}"/>
+      <g filter="url(#gooF)" fill="${NEXT_BG[k]}">${pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i ? 120 : 170}" style="animation-delay:${TR[k] + i * 0.04}s"/>`).join("")}</g>`;
+    stage.append(svg);
+  }
+}
+build();
+
+function fit() { stage.style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`; }
+addEventListener("resize", fit); fit();
+// كل الحركات موقوفة ومثبتة على زمن واحد، فتبقى متزامنة مع الصوت
+function seek(t) { stage.getAnimations({ subtree: true }).forEach((a) => { a.pause(); a.currentTime = t * 1000; }); }
+window.seek = seek;
+seek(0);
+
+let playing = false;
+const btn = document.getElementById("play");
+function tick() {
+  if (!playing) return;
+  seek(audio.currentTime);
+  if (audio.ended || audio.currentTime >= END) { playing = false; btn.textContent = "▶ تشغيل"; return; }
+  requestAnimationFrame(tick);
+}
+function play(fromStart) { if (fromStart) audio.currentTime = 0; audio.play(); playing = true; btn.textContent = "⏸ إيقاف"; tick(); }
+document.getElementById("start").onclick = (e) => { e.currentTarget.remove(); play(true); };
+btn.onclick = () => { if (playing) { audio.pause(); playing = false; btn.textContent = "▶ تشغيل"; } else play(audio.ended); };
+document.getElementById("again").onclick = () => play(true);
+</script>
+</body>
+</html>
