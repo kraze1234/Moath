@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أشكال الاحترام</title>
+<style>
+@font-face{font-family:"Kufi";src:url(fonts/kufi-ar.woff2) format("woff2");font-weight:100 900;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Kufi";src:url(fonts/kufi-la.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:"Plex";src:url(fonts/plex-600-ar.woff2) format("woff2");font-weight:600;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200E,U+FB50-FDFF,U+FE70-FEFC}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#111;overflow:hidden}
+#wrap{position:fixed;inset:0;display:grid;place-items:center}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;flex:none;background:#1f7a55;transform-origin:center}
+#stage *{animation-fill-mode:both;animation-play-state:paused}
+
+/* ألوان الصفحات: --bg لون الصفحة، --hi لون أفتح للكلام المنطوق */
+.s1{--bg:#1f7a55;--soft:#2c9468;--hi:#6cc79a;--fg:#fffaf3}
+.s2{--bg:#141b30;--soft:#1f2a4a;--hi:#fff2c4;--fg:#fffaf3}
+.s3{--bg:#c2457e;--soft:#d65f95;--hi:#f3a9c9;--fg:#fffaf3}
+
+.scene{position:absolute;inset:0;opacity:0;color:var(--fg);background:radial-gradient(110% 85% at 50% 45%,var(--soft) 0%,var(--bg) 72%)}
+.content{position:absolute;inset:0}
+@keyframes on{0%{opacity:0}100%{opacity:1}}
+@keyframes off{0%{opacity:1}100%{opacity:0}}
+@keyframes exit{0%{transform:scale(1);filter:blur(0);opacity:1}100%{transform:scale(.82);filter:blur(14px);opacity:0}}
+@keyframes kb{0%{transform:scale(1)}100%{transform:scale(1.035)}}
+.zoom{position:absolute;inset:0;animation:kb linear}
+
+/* زخارف: دوائر ملونة تطفو */
+.dots i{position:absolute;border-radius:50%;opacity:0;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.55}85%{opacity:.4}100%{transform:translateY(-1200px) scale(1);opacity:0}}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;background:var(--hi)}
+.bA{width:760px;height:620px;top:-240px;right:-180px;animation:driftA 9s ease-in-out infinite alternate}
+.bB{width:700px;height:560px;bottom:-260px;left:-200px;animation:driftB 11s ease-in-out infinite alternate}
+@keyframes driftA{0%{transform:translate(0,0)}100%{transform:translate(-150px,90px)}}
+@keyframes driftB{0%{transform:translate(0,0)}100%{transform:translate(170px,-80px)}}
+
+/* ظهور الكلمات وتلوين المنطوق */
+.w{display:inline-block;animation:wordIn .5s cubic-bezier(.2,.9,.25,1.2)}
+@keyframes wordIn{0%{opacity:0;transform:translateY(30px) scale(.8);filter:blur(6px)}100%{opacity:1;transform:none;filter:blur(0)}}
+.say{position:relative;display:inline;isolation:isolate}
+.hl{position:absolute;inset:-6px -22px -2px;border-radius:24px;background:var(--hi);opacity:.55;z-index:-1;transform-origin:right center}
+@keyframes sweep{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes hlOff{0%{opacity:.55}100%{opacity:0}}
+@keyframes pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes grow{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes fade{0%{opacity:0}100%{opacity:1}}
+
+/* الصفحة 1 */
+.title{position:absolute;top:70px;left:0;right:0;text-align:center;font-family:"Kufi";font-weight:800;font-size:150px;line-height:1.35;
+  text-shadow:0 10px 40px rgba(0,0,0,.25);transform-origin:50% 50%}
+.title .say{display:inline-block}
+@keyframes titleIn{
+  0%{opacity:0;transform:translateY(330px) scale(3.6);filter:blur(16px)}
+  14%{opacity:1;transform:translateY(330px) scale(3.1);filter:blur(0)}
+  55%{transform:translateY(330px) scale(2.9)}
+  100%{opacity:1;transform:none;filter:blur(0)}}
+.rainbow{position:absolute;top:298px;left:50%;width:560px;margin-left:-280px;height:10px;border-radius:10px;
+  background:linear-gradient(90deg,#3fb8c4,#2f8fd8,#7a3e9d,#c13c9a,#e2475a,#f07f21,#f6b928,#8cc63f,#2e9e4f);animation:grow .8s ease-out}
+.para{position:absolute;top:370px;left:90px;right:90px;text-align:center;font-family:"Kufi";font-weight:700;font-size:50px;line-height:2.1}
+.para .line{display:block}
+
+/* الصفحة 2: الدائرة */
+.wheel{position:absolute;inset:0;width:1920px;height:1080px}
+.wheel text{font-family:"Kufi";font-weight:700}
+.seg,.arr,.center,.lit{transform-box:view-box}
+.seg{transform-origin:960px 540px;animation:segIn .5s cubic-bezier(.2,.9,.25,1.15)}
+@keyframes segIn{0%{opacity:0;transform:scale(.5) rotate(-8deg)}70%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:none}}
+.arr{transform-origin:1135px 540px;animation:arrIn .35s ease-out,off .3s ease-in}
+@keyframes arrIn{0%{transform:scaleX(0);opacity:0}100%{transform:scaleX(1);opacity:1}}
+.lit{opacity:0;animation:litOn 1s ease}
+@keyframes litOn{0%,100%{opacity:0}12%,85%{opacity:.42}}
+.center{transform-origin:960px 540px;animation:pop .6s cubic-bezier(.2,.9,.25,1.2)}
+.cglow{opacity:0;animation:litOn 1s ease}
+
+/* الصفحة 3 */
+.thanks{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Kufi";font-weight:800;font-size:112px;text-shadow:0 10px 40px rgba(0,0,0,.2)}
+.ring{position:absolute;left:50%;top:50%;width:0;height:0}
+.ring i{position:absolute;width:34px;height:34px;margin:-17px;border-radius:50%;animation:burst .9s cubic-bezier(.2,.9,.3,1.1)}
+@keyframes burst{0%{transform:translate(0,0) scale(0);opacity:0}100%{transform:translate(var(--x),var(--y)) scale(1);opacity:1}}
+
+/* الدمج بين الصفحات */
+.goo{position:absolute;inset:0;width:1920px;height:1080px;z-index:4;pointer-events:none}
+.goo circle{transform-box:fill-box;transform-origin:center;animation:blobGrow .7s cubic-bezier(.6,0,.3,1)}
+@keyframes blobGrow{0%{transform:scale(0)}100%{transform:scale(9)}}
+
+#ui{position:fixed;inset:auto 0 18px 0;display:flex;justify-content:center;gap:10px;z-index:5}
+#ui button{font:600 16px "Plex";border:0;border-radius:999px;padding:10px 20px;cursor:pointer;background:rgba(255,250,243,.92);color:#14361f}
+#start{position:fixed;inset:0;z-index:6;display:grid;place-items:center;background:rgba(0,0,0,.5);cursor:pointer}
+#start div{font:800 34px "Kufi";color:#14361f;background:#fffaf3;padding:22px 48px;border-radius:999px}
+body.render #ui,body.render #start{display:none}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <svg width="0" height="0" style="position:absolute"><defs>
+    <filter id="gooF" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="28"/><feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 36 -14"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity=".35"/></filter>
+  </defs></svg>
+
+  <!-- 1: الاحترام -->
+  <section class="scene s1" data-in="0" data-out="1">
+    <div class="deco"></div>
+    <div class="content"><div class="zoom">
+      <div class="title"><span class="say" data-part="T"></span></div>
+      <div class="rainbow"></div>
+      <div class="para">
+        <span class="line"><span class="say" data-part="P1"></span></span>
+        <span class="line"><span class="say" data-part="P2"></span></span>
+        <span class="line"><span class="say" data-part="P3"></span></span>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- 2: أشكال الاحترام -->
+  <section class="scene s2" data-in="1" data-out="2">
+    <div class="deco"></div>
+    <div class="content"><div class="zoom"><svg class="wheel" viewBox="0 0 1920 1080"></svg></div></div>
+  </section>
+
+  <!-- 3: الختام (اسم المدرسة يُنطق ولا يظهر) -->
+  <section class="scene s3" data-in="2">
+    <div class="deco"></div>
+    <div class="content"><div class="zoom">
+      <div class="ring"></div>
+      <div class="thanks"><span class="words" data-part="C1"></span></div>
+    </div></div>
+  </section>
+</div></div>
+
+<div id="start"><div>▶ تشغيل</div></div>
+<div id="ui"><button id="play">⏸ إيقاف</button><button id="again">↺ من البداية</button></div>
+<audio id="voice" src="voice-cut.mp3" preload="auto"></audio>
+
+<script src="timeline.js"></script>
+<script>
+// TL وTEXT وTR وMERGE وEND في timeline.js
+const SW = TR.map((t) => (t == null ? 0 : t + MERGE));
+const NEXT_BG = [null, "#141b30", "#c2457e"];
+const COLORS = ["#3fb8c4", "#2f8fd8", "#2b4a9a", "#8c1d3f", "#e2475a", "#f07f21", "#f6b928", "#8cc63f", "#2e9e4f", "#7a3e9d", "#c13c9a", "#6fc3e3"];
+const ITEMS = [
+  ["احترام الله", "بطاعته", "وعدم معصيته"], ["احترام", "الوالدين"], ["احترام", "زميلاتي"], ["احترام", "الآخرين"],
+  ["احترام", "ذاتي"], ["احترام", "معلمتي"], ["احترام ذوي", "الاحتياجات", "الخاصة"], ["احترام", "الحيوان", "والرفق به"],
+  ["احترامي", "لكتابي"], ["احترام", "المكان"], ["احترام", "الوقت"], ["احترام", "الوطن"],
+];
+const NUMS = ["١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠", "١١", "١٢"];
+const stage = document.getElementById("stage");
+const audio = document.getElementById("voice");
+const NS = "http://www.w3.org/2000/svg";
+if (new URLSearchParams(location.search).has("render")) document.body.classList.add("render");
+
+// الحركات تبدأ مخفية قبل موعدها (both) إلا إذا حُدد غير ذلك
+const anim = (el, list, fill = "both") => { el.style.animation = list.join(", "); el.style.animationFillMode = fill; };
+const letters = (w) => w.replace(/[ً-ْـ،.]/g, "").length;
+
+// كلمات الجزء تظهر بنسبة حروفها من زمن نطقه
+function words(el, key, highlight) {
+  const [s, d] = TL[key];
+  const ws = TEXT[key].split(" ");
+  const total = ws.reduce((n, w) => n + letters(w), 0);
+  let acc = 0;
+  ws.forEach((w, i) => {
+    const sp = document.createElement("span");
+    sp.className = "w"; sp.textContent = w;
+    sp.style.animationDelay = (s + (d * acc) / total - 0.08) + "s";
+    acc += letters(w);
+    el.append(sp);
+    if (i < ws.length - 1) el.append(" ");
+  });
+  if (highlight) {
+    const hl = document.createElement("i");
+    hl.className = "hl";
+    anim(hl, [`sweep ${d}s linear ${s}s`, `hlOff .45s ease ${s + d + 0.15}s`], "both, forwards");
+    el.prepend(hl);
+  }
+}
+
+function polar(r, deg) { const a = (deg * Math.PI) / 180; return [960 + r * Math.cos(a), 540 + r * Math.sin(a)]; }
+function segPath(r1, r2, a0, a1) {
+  const [x1, y1] = polar(r2, a0), [x2, y2] = polar(r2, a1), [x3, y3] = polar(r1, a1), [x4, y4] = polar(r1, a0);
+  return `M ${x1} ${y1} A ${r2} ${r2} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${r1} ${r1} 0 0 0 ${x4} ${y4} Z`;
+}
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent?.append(e); return e; };
+
+function buildWheel() {
+  const svg = document.querySelector(".wheel");
+  const R1 = 262, R2 = 505;
+  const guide = el("g", { class: "center" }, svg);
+  anim(guide, [`fade .8s ease ${SW[1] + 0.3}s`]);
+  for (let k = 0; k < 12; k++) {
+    el("path", { d: segPath(R1, R2, -90 + 30 * k + 1.6, -90 + 30 * (k + 1) - 1.6), fill: "rgba(255,255,255,.04)", stroke: "rgba(255,250,243,.18)", "stroke-width": 2, "stroke-dasharray": "8 8" }, guide);
+  }
+  ITEMS.forEach((lines, k) => {
+    const [s, d] = TL["I" + (k + 1)];
+    const a0 = -90 + 30 * k + 1.6, a1 = -90 + 30 * (k + 1) - 1.6, mid = (a0 + a1) / 2;
+    // السهم: يخرج من الدائرة نحو الشكل
+    const ag = el("g", { transform: `rotate(${mid} 960 540)` }, svg);
+    const arr = el("g", { class: "arr" }, ag);
+    el("line", { x1: 1135, y1: 540, x2: 1236, y2: 540, stroke: "#fff2c4", "stroke-width": 9, "stroke-linecap": "round" }, arr);
+    el("path", { d: "M 1258 540 L 1230 524 L 1230 556 Z", fill: "#fff2c4" }, arr);
+    anim(arr, [`arrIn .35s ease-out ${s - 0.45}s`, `off .3s ease-in ${s + d + 0.25}s`], "both, forwards");
+    // الشكل: قطعة ملونة + رقم + نص
+    const g = el("g", { class: "seg", filter: "url(#soft)" }, svg);
+    anim(g, [`segIn .5s cubic-bezier(.2,.9,.25,1.15) ${s - 0.15}s`]);
+    el("path", { d: segPath(R1, R2, a0, a1), fill: COLORS[k], stroke: "#fffaf3", "stroke-width": 5 }, g);
+    const lit = el("path", { class: "lit", d: segPath(R1, R2, a0, a1), fill: "#ffffff" }, g);
+    anim(lit, [`litOn ${d + 0.5}s ease ${s}s`]);
+    const [nx, ny] = polar(R2 - 34, mid);
+    el("circle", { cx: nx, cy: ny, r: 24, fill: "#fffaf3" }, g);
+    el("text", { x: nx, y: ny + 10, "text-anchor": "middle", "font-size": 28, fill: COLORS[k] }, g).textContent = NUMS[k];
+    const [tx, ty] = polar(lines.length > 2 ? 372 : 380, mid);
+    const fs = lines.length > 2 ? 26 : 30;
+    lines.forEach((ln, i) => {
+      el("text", { x: tx, y: ty + (i - (lines.length - 1) / 2) * fs * 1.35 + fs * 0.35, "text-anchor": "middle", "font-size": fs, fill: "#fff" }, g).textContent = ln;
+    });
+  });
+  // الدائرة الوسطى
+  const c = el("g", { class: "center" }, svg);
+  anim(c, [`pop .6s cubic-bezier(.2,.9,.25,1.2) ${SW[1] + 0.15}s`]);
+  el("circle", { cx: 960, cy: 540, r: 178, fill: "#fff2c4", class: "cglow" }, c);
+  el("circle", { cx: 960, cy: 540, r: 168, fill: "#fffaf3", stroke: "#e9dcc0", "stroke-width": 6 }, c);
+  const [ws, wd] = TL.W;
+  const glow = el("circle", { cx: 960, cy: 540, r: 168, fill: "#fff2c4", class: "lit" }, c);
+  anim(glow, [`litOn ${wd + 0.6}s ease ${ws}s`]);
+  el("text", { x: 960, y: 515, "text-anchor": "middle", "font-size": 64, fill: "#2b2440" }, c).textContent = "أشكال";
+  el("text", { x: 960, y: 605, "text-anchor": "middle", "font-size": 64, fill: "#2b2440" }, c).textContent = "الاحترام";
+}
+
+function build() {
+  // الصفحة 1
+  const t = document.querySelector(".title");
+  anim(t, [`titleIn 2.6s cubic-bezier(.5,0,.2,1) 0.05s`]);
+  document.querySelector(".rainbow").style.animationDelay = "2.45s";
+  document.querySelectorAll(".say[data-part]").forEach((e) => words(e, e.dataset.part, true));
+  // الصفحة 3: بلا تلوين
+  document.querySelectorAll(".words[data-part]").forEach((e) => words(e, e.dataset.part, false));
+  const ring = document.querySelector(".ring");
+  COLORS.forEach((c, k) => {
+    const i = document.createElement("i");
+    const a = (k / 12) * Math.PI * 2;
+    i.style.cssText = `background:${c};--x:${Math.cos(a) * 760}px;--y:${Math.sin(a) * 400}px`;
+    i.style.animation = `burst .9s cubic-bezier(.2,.9,.3,1.1) ${SW[2] + 0.1 + k * 0.04}s`;
+    i.style.animationFillMode = "both";
+    ring.append(i);
+  });
+  buildWheel();
+
+  document.querySelectorAll(".scene").forEach((sc) => {
+    const tin = SW[+sc.dataset.in], out = sc.dataset.out;
+    if (out) {
+      anim(sc, [`on .01s ${tin}s`, `off .01s ${SW[+out]}s`], "both, forwards");
+      anim(sc.querySelector(".content"), [`exit .5s cubic-bezier(.5,0,.8,.4) ${TR[+out]}s`], "forwards");
+    } else anim(sc, [`on .01s ${tin}s`], "both");
+    const z = sc.querySelector(".zoom");
+    anim(z, [`kb ${(out ? SW[+out] : END) - tin}s linear ${tin}s`]);
+    const deco = sc.querySelector(".deco");
+    deco.innerHTML = `<div class="blob bA"></div><div class="blob bB"></div><div class="dots"></div>`;
+    let seed = +sc.dataset.in * 97 + 13;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    for (let k = 0; k < 22; k++) {
+      const i = document.createElement("i"), s = 10 + rnd() * 26, dur = 8 + rnd() * 8;
+      Object.assign(i.style, { width: s + "px", height: s + "px", left: rnd() * 1920 + "px", bottom: "-40px",
+        background: COLORS[k % 12], animationDuration: dur + "s", animationDelay: -rnd() * dur + "s" });
+      deco.querySelector(".dots").append(i);
+    }
+  });
+
+  // الدمج: بقع بلون الصفحة التالية تكبر وتلتحم
+  const pts = [[960, 540], [320, 260], [1620, 300], [420, 860], [1520, 840], [960, 140], [960, 960], [140, 560], [1780, 560]];
+  for (let k = 1; k <= 2; k++) {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "goo"); svg.setAttribute("viewBox", "0 0 1920 1080");
+    anim(svg, [`on .01s ${TR[k]}s`, `off .3s ${SW[k] + 0.05}s`], "both, forwards");
+    const cover = el("rect", { width: 1920, height: 1080, fill: NEXT_BG[k] }, svg);
+    anim(cover, [`fade .18s linear ${TR[k] + 0.42}s`]);
+    const g = el("g", { filter: "url(#gooF)", fill: NEXT_BG[k] }, svg);
+    pts.forEach(([x, y], i) => {
+      const c = el("circle", { cx: x, cy: y, r: i ? 120 : 170 }, g);
+      c.style.animationDelay = TR[k] + i * 0.04 + "s";
+    });
+    stage.append(svg);
+  }
+}
+build();
+
+function fit() { stage.style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`; }
+addEventListener("resize", fit); fit();
+// كل الحركات موقوفة ومثبتة على زمن واحد، فتبقى متزامنة مع الصوت
+function seek(t) { stage.getAnimations({ subtree: true }).forEach((a) => { a.pause(); a.currentTime = t * 1000; }); }
+window.seek = seek;
+seek(0);
+
+let playing = false;
+const btn = document.getElementById("play");
+function tick() {
+  if (!playing) return;
+  seek(audio.currentTime);
+  if (audio.ended || audio.currentTime >= END) { playing = false; btn.textContent = "▶ تشغيل"; return; }
+  requestAnimationFrame(tick);
+}
+function play(fromStart) { if (fromStart) audio.currentTime = 0; audio.play(); playing = true; btn.textContent = "⏸ إيقاف"; tick(); }
+document.getElementById("start").onclick = (e) => { e.currentTarget.remove(); play(true); };
+btn.onclick = () => { if (playing) { audio.pause(); playing = false; btn.textContent = "▶ تشغيل"; } else play(audio.ended); };
+document.getElementById("again").onclick = () => play(true);
+</script>
+</body>
+</html>
