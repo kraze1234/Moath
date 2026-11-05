@@ -32,6 +32,7 @@ html,body{height:100%;background:#111;overflow:hidden}
 .dots i{position:absolute;border-radius:50%;opacity:0;animation:floatUp linear infinite}
 @keyframes floatUp{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.55}85%{opacity:.4}100%{transform:translateY(-1200px) scale(1);opacity:0}}
 .blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;background:var(--hi)}
+.s2 .blob{background:#5b3fa0;opacity:.3}
 .bA{width:760px;height:620px;top:-240px;right:-180px;animation:driftA 9s ease-in-out infinite alternate}
 .bB{width:700px;height:560px;bottom:-260px;left:-200px;animation:driftB 11s ease-in-out infinite alternate}
 @keyframes driftA{0%{transform:translate(0,0)}100%{transform:translate(-150px,90px)}}
@@ -143,7 +144,7 @@ const SW = TR.map((t) => (t == null ? 0 : t + MERGE));
 const NEXT_BG = [null, "#141b30", "#c2457e"];
 const COLORS = ["#3fb8c4", "#2f8fd8", "#2b4a9a", "#8c1d3f", "#e2475a", "#f07f21", "#f6b928", "#8cc63f", "#2e9e4f", "#7a3e9d", "#c13c9a", "#6fc3e3"];
 const ITEMS = [
-  ["احترام الله", "بطاعته", "وعدم معصيته"], ["احترام", "الوالدين"], ["احترام", "زميلاتي"], ["احترام", "الآخرين"],
+  ["احترام الله", "بطاعته", "وعدم", "معصيته"], ["احترام", "الوالدين"], ["احترام", "زميلاتي"], ["احترام", "الآخرين"],
   ["احترام", "ذاتي"], ["احترام", "معلمتي"], ["احترام ذوي", "الاحتياجات", "الخاصة"], ["احترام", "الحيوان", "والرفق به"],
   ["احترامي", "لكتابي"], ["احترام", "المكان"], ["احترام", "الوقت"], ["احترام", "الوطن"],
 ];
@@ -184,15 +185,28 @@ function segPath(r1, r2, a0, a1) {
   const [x1, y1] = polar(r2, a0), [x2, y2] = polar(r2, a1), [x3, y3] = polar(r1, a1), [x4, y4] = polar(r1, a0);
   return `M ${x1} ${y1} A ${r2} ${r2} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${r1} ${r1} 0 0 0 ${x4} ${y4} Z`;
 }
+// قطعة مثل الصورة: حافة داخلية مقوسة، وحافة خارجية مستقيمة في وسطها لسان صغير يحمل الرقم
+const TAB = 38;
+function piecePath(r1, r2, a0, a1) {
+  const [ox0, oy0] = polar(r2, a0), [ox1, oy1] = polar(r2, a1), [ix0, iy0] = polar(r1, a0), [ix1, iy1] = polar(r1, a1);
+  const mid = ((a0 + a1) / 2) * Math.PI / 180, nx = Math.cos(mid) * TAB, ny = Math.sin(mid) * TAB;
+  const lerp = (t) => [ox0 + (ox1 - ox0) * t, oy0 + (oy1 - oy0) * t];
+  const [t0x, t0y] = lerp(0.27), [t1x, t1y] = lerp(0.73);
+  return `M ${ix0} ${iy0} L ${ox0} ${oy0} L ${t0x} ${t0y} L ${t0x + nx} ${t0y + ny} L ${t1x + nx} ${t1y + ny} L ${t1x} ${t1y} L ${ox1} ${oy1} L ${ix1} ${iy1} A ${r1} ${r1} 0 0 0 ${ix0} ${iy0} Z`;
+}
+function tabCenter(r2, a0, a1) {
+  const [ox0, oy0] = polar(r2, a0), [ox1, oy1] = polar(r2, a1), mid = ((a0 + a1) / 2) * Math.PI / 180;
+  return [(ox0 + ox1) / 2 + Math.cos(mid) * TAB / 2, (oy0 + oy1) / 2 + Math.sin(mid) * TAB / 2];
+}
 const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent?.append(e); return e; };
 
 function buildWheel() {
   const svg = document.querySelector(".wheel");
-  const R1 = 262, R2 = 505;
+  const R1 = 262, R2 = 485;
   const guide = el("g", { class: "center" }, svg);
   anim(guide, [`fade .8s ease ${SW[1] + 0.3}s`]);
   for (let k = 0; k < 12; k++) {
-    el("path", { d: segPath(R1, R2, -90 + 30 * k + 1.6, -90 + 30 * (k + 1) - 1.6), fill: "rgba(255,255,255,.04)", stroke: "rgba(255,250,243,.18)", "stroke-width": 2, "stroke-dasharray": "8 8" }, guide);
+    el("path", { d: piecePath(R1, R2, -90 + 30 * k + 1.6, -90 + 30 * (k + 1) - 1.6), fill: "rgba(255,255,255,.04)", stroke: "rgba(255,250,243,.18)", "stroke-width": 2, "stroke-dasharray": "8 8" }, guide);
   }
   ITEMS.forEach((lines, k) => {
     const [s, d] = TL["I" + (k + 1)];
@@ -206,14 +220,13 @@ function buildWheel() {
     // الشكل: قطعة ملونة + رقم + نص
     const g = el("g", { class: "seg", filter: "url(#soft)" }, svg);
     anim(g, [`segIn .5s cubic-bezier(.2,.9,.25,1.15) ${s - 0.15}s`]);
-    el("path", { d: segPath(R1, R2, a0, a1), fill: COLORS[k], stroke: "#fffaf3", "stroke-width": 5 }, g);
-    const lit = el("path", { class: "lit", d: segPath(R1, R2, a0, a1), fill: "#ffffff" }, g);
+    el("path", { d: piecePath(R1, R2, a0, a1), fill: COLORS[k], stroke: "#fffaf3", "stroke-width": 5, "stroke-linejoin": "round" }, g);
+    const lit = el("path", { class: "lit", d: piecePath(R1, R2, a0, a1), fill: "#ffffff" }, g);
     anim(lit, [`litOn ${d + 0.5}s ease ${s}s`]);
-    const [nx, ny] = polar(R2 - 34, mid);
-    el("circle", { cx: nx, cy: ny, r: 24, fill: "#fffaf3" }, g);
-    el("text", { x: nx, y: ny + 10, "text-anchor": "middle", "font-size": 28, fill: COLORS[k] }, g).textContent = NUMS[k];
-    const [tx, ty] = polar(lines.length > 2 ? 372 : 380, mid);
-    const fs = lines.length > 2 ? 26 : 30;
+    const [nx, ny] = tabCenter(R2, a0, a1);
+    el("text", { x: nx, y: ny + 9, "text-anchor": "middle", "font-size": 27, fill: "#fff" }, g).textContent = NUMS[k];
+    const [tx, ty] = polar(lines.length > 2 ? 368 : 372, mid);
+    const fs = lines.length > 3 ? 24 : lines.length > 2 ? 26 : 30;
     lines.forEach((ln, i) => {
       el("text", { x: tx, y: ty + (i - (lines.length - 1) / 2) * fs * 1.35 + fs * 0.35, "text-anchor": "middle", "font-size": fs, fill: "#fff" }, g).textContent = ln;
     });

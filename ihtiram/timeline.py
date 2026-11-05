@@ -31,6 +31,7 @@ PARTS = [
 LEAD = 0.6          # قبل أول كلمة: ظهور «الاحترام» الكبير
 MERGE = 0.62        # مدة الدمج حتى تظهر الصفحة التالية
 TAIL = 1.6          # بعد آخر كلمة
+GAP_AFTER = {"P3": 0.9, "I12": 0.9}   # صمت يُضاف بعد هذه الأجزاء ليتسع الدمج بين الصفحات
 
 plain = lambda s: re.sub(r"[ً-ْـ،.]", "", s)
 
@@ -44,20 +45,62 @@ def estimate():
     return out
 
 
-def from_words(words_json):
-    """يطابق كلمات كل جزء بالترتيب مع كلمات Whisper (بعدد الكلمات)."""
-    W = [w for seg in json.load(open(words_json)) for w in seg["words"]]
-    out, i = {}, 0
-    for key, text, _ in PARTS:
-        n = len(text.split())
-        ws = W[i:i + n]
-        i += n
-        out[key] = [round(ws[0]["s"] + LEAD, 2), round(ws[-1]["e"] - ws[0]["s"], 2)]
+def from_words(audio, words_json):
+    """كل مقطع من Whisper يقابل جزءًا من النص بالترتيب. البداية: أول صوت فعلي بعد بداية المقطع
+    (بدايات Whisper تشمل الصمت قبلها)، والنهاية: نهاية آخر كلمة."""
+    import subprocess, numpy as np
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", audio, "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
+                         capture_output=True, check=True).stdout
+    a = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768
+    hop = 160
+    db = 20 * np.log10(np.sqrt(np.square(a[: len(a) // hop * hop].reshape(-1, hop)).mean(1)) + 1e-9)
+    segs = json.load(open(words_json))
+    if len(segs) != len(PARTS):
+        raise SystemExit(f"عدد مقاطع التفريغ {len(segs)} لا يساوي عدد الأجزاء {len(PARTS)}")
+    out = {}
+    for (key, _, _), seg in zip(PARTS, segs):
+        i = int(seg["words"][0]["s"] * 100)
+        while i < len(db) - 3 and not (db[i:i + 3] > -35).all():
+            i += 1
+        s, e = i / 100, seg["words"][-1]["e"]
+        out[key] = [round(s + LEAD, 2), round(max(0.3, e - s), 2)]
     return out
 
 
+def cut_audio(audio, tl):
+    """يضيف صمتًا بعد أجزاء GAP_AFTER (ويزيح ما بعدها في tl)، ويؤخر الصوت LEAD ثانية → voice-cut.mp3."""
+    import subprocess
+    keys = [k for k, _, _ in PARTS]
+    cuts, shift = [], 0.0
+    for k in keys:
+        if k in GAP_AFTER:
+            end = tl[k][0] + tl[k][1] - LEAD + 0.12      # نقطة القص في الصوت الأصلي
+            cuts.append((round(end, 3), GAP_AFTER[k]))
+    # إزاحة الأجزاء اللاحقة
+    acc = 0.0
+    for k in keys:
+        tl[k][0] = round(tl[k][0] + acc, 2)
+        if k in GAP_AFTER: acc += GAP_AFTER[k]
+    pieces, prev, f = [], 0.0, []
+    for i, (t, gap) in enumerate(cuts + [(None, 0)]):
+        trim = f"atrim={prev}:{t}" if t is not None else f"atrim=start={prev}"
+        f.append(f"[0:a]{trim},asetpts=PTS-STARTPTS[p{i}]")
+        pieces.append(f"[p{i}]")
+        if gap:
+            f.append(f"anullsrc=r=44100:cl=mono,atrim=0:{gap}[g{i}]")
+            pieces.append(f"[g{i}]")
+        prev = t
+    f.append(f"{''.join(pieces)}concat=n={len(pieces)}:v=0:a=1,adelay={int(LEAD * 1000)}[out]")
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", audio, "-filter_complex", ";".join(f), "-map", "[out]",
+                    "-ac", "1", "-ar", "44100", "-c:a", "libmp3lame", "-b:a", "192k", "voice-cut.mp3"], check=True)
+
+
 def main():
-    tl = from_words(sys.argv[2]) if len(sys.argv) > 2 else estimate()
+    if len(sys.argv) > 2:
+        tl = from_words(sys.argv[1], sys.argv[2])
+        cut_audio(sys.argv[1], tl)
+    else:
+        tl = estimate()
     end_of = lambda k: tl[k][0] + tl[k][1]
     tr1 = round(end_of("P3") + 0.25, 2)
     tr2 = round(end_of("I12") + 0.3, 2)

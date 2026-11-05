@@ -6,10 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 if [ $# -ge 2 ]; then
-  python3 timeline.py "$1" "$2" > /dev/null
-  # الصوت يبدأ بعد LEAD ثانية (ظهور «الاحترام» الكبير)
-  LEAD=$(sed -n 's/^const LEAD = \(.*\);/\1/p' timeline.js)
-  ffmpeg -hide_banner -loglevel error -y -i "$1" -af "adelay=$(awk "BEGIN{printf \"%d\", $LEAD*1000}")" -c:a libmp3lame -b:a 192k voice-cut.mp3
+  python3 timeline.py "$1" "$2" > /dev/null   # timeline.js + voice-cut.mp3 (صمت عند الدمج، وتأخير LEAD)
 else
   python3 timeline.py > /dev/null
 fi
