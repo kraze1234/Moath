@@ -2,7 +2,7 @@
 const { chromium } = require("playwright");
 const os = require("os");
 (async () => {
-  const [dir, end] = process.argv.slice(2);
+  const [dir, end, from = "0"] = process.argv.slice(2);   // from: أول إطار (لإعادة تصوير جزء فقط)
   const FPS = 30, N = Math.round(+end * FPS);
   const W = Math.max(1, Math.min(4, os.cpus().length));
   const b = await chromium.launch();
@@ -11,7 +11,7 @@ const os = require("os");
     await p.goto("file://" + dir + "/index.html?render");
     await p.evaluate(() => document.fonts.ready);
     await p.waitForTimeout(500);
-    for (let i = w; i < N; i += W) {
+    for (let i = +from + w; i < N; i += W) {
       await p.evaluate((t) => seek(t), i / FPS);
       await p.screenshot({ path: `${dir}/.frames/f${String(i).padStart(4, "0")}.png` });
     }

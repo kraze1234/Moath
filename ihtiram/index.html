@@ -77,7 +77,8 @@ html,body{height:100%;background:#111;overflow:hidden}
 .cglow{opacity:0;animation:litOn 1s ease}
 
 /* الصفحة 3 */
-.thanks{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Kufi";font-weight:800;font-size:112px;text-shadow:0 10px 40px rgba(0,0,0,.2)}
+.thanks .sub{font-size:84px;font-weight:700;opacity:.95}
+.thanks{position:absolute;inset:0;display:flex;flex-direction:column;gap:20px;align-items:center;justify-content:center;font-family:"Kufi";font-weight:800;font-size:112px;text-shadow:0 10px 40px rgba(0,0,0,.2)}
 .ring{position:absolute;left:50%;top:50%;width:0;height:0}
 .ring i{position:absolute;width:34px;height:34px;margin:-17px;border-radius:50%;animation:burst .9s cubic-bezier(.2,.9,.3,1.1)}
 @keyframes burst{0%{transform:translate(0,0) scale(0);opacity:0}100%{transform:translate(var(--x),var(--y)) scale(1);opacity:1}}
@@ -123,12 +124,12 @@ body.render #ui,body.render #start{display:none}
     <div class="content"><div class="zoom"><svg class="wheel" viewBox="0 0 1920 1080"></svg></div></div>
   </section>
 
-  <!-- 3: الختام (اسم المدرسة يُنطق ولا يظهر) -->
+  <!-- 3: الختام بلا تشكيل ولا تلوين -->
   <section class="scene s3" data-in="2">
     <div class="deco"></div>
     <div class="content"><div class="zoom">
       <div class="ring"></div>
-      <div class="thanks"><span class="words" data-part="C1"></span></div>
+      <div class="thanks"><span class="words" data-part="C1" data-text="مع تحيات التوجيه الطلابي"></span><span class="words sub" data-part="C2" data-text="ابتدائية حليمة السعدية"></span></div>
     </div></div>
   </section>
 </div></div>
@@ -159,9 +160,9 @@ const anim = (el, list, fill = "both") => { el.style.animation = list.join(", ")
 const letters = (w) => w.replace(/[ً-ْـ،.]/g, "").length;
 
 // كلمات الجزء تظهر بنسبة حروفها من زمن نطقه
-function words(el, key, highlight) {
+function words(el, key, highlight, text = TEXT[key]) {
   const [s, d] = TL[key];
-  const ws = TEXT[key].split(" ");
+  const ws = text.split(" ");
   const total = ws.reduce((n, w) => n + letters(w), 0);
   let acc = 0;
   ws.forEach((w, i) => {
@@ -250,7 +251,7 @@ function build() {
   document.querySelector(".rainbow").style.animationDelay = "2.45s";
   document.querySelectorAll(".say[data-part]").forEach((e) => words(e, e.dataset.part, true));
   // الصفحة 3: بلا تلوين
-  document.querySelectorAll(".words[data-part]").forEach((e) => words(e, e.dataset.part, false));
+  document.querySelectorAll(".words[data-part]").forEach((e) => words(e, e.dataset.part, false, e.dataset.text));
   const ring = document.querySelector(".ring");
   COLORS.forEach((c, k) => {
     const i = document.createElement("i");
