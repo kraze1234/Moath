@@ -60,10 +60,14 @@ async function answerAny(page) {
     for (const [lbl, vp] of [['desktop', { width: 1366, height: 900 }], ['mobile', { width: 390, height: 844 }]]) {
       const p = await newPage(vp, 'home-' + lbl);
       await p.goto(base + '/');
-      await p.waitForSelector('.bcard');
-      check('الرئيسية (' + lbl + '): أربعة فروع والفرع الجامع وثماني ألعاب', (await p.locator('.bcard').count()) === 5 && (await p.locator('.gtile').count()) === 8);
+      await p.waitForSelector('.gtile');
+      check('الرئيسية (' + lbl + '): سبع ألعاب والتحدي الأكبر وعشرة أعلام', (await p.locator('.gtile').count()) === 7 && (await p.locator('.bcard.grand').count()) === 1 && (await p.locator('.pcard').count()) === 10);
       check('الرئيسية (' + lbl + '): لا تمرير أفقي', (await hscroll(p)) <= 0, String(await hscroll(p)));
-      check('الرئيسية (' + lbl + '): شريط البيانات التجريبية ظاهر', await p.locator('.demo-banner').isVisible());
+      check('الرئيسية (' + lbl + '): لا شريط بيانات تجريبية', (await p.locator('.demo-banner').count()) === 0);
+      await p.locator('.pcard').first().click();
+      await p.waitForSelector('.modal .facts li');
+      check('الرئيسية (' + lbl + '): بطاقة العلم بمعلوماته وإحالته', (await p.locator('.modal .cite a').count()) >= 1);
+      await p.keyboard.press('Escape');
       await p.screenshot({ path: path.join(OUT, 'home-' + lbl + '.png'), fullPage: true });
       await p.context().close();
     }
@@ -79,10 +83,10 @@ async function answerAny(page) {
       await p.context().close();
     }
 
-    /* ===== اللعب الفردي في كل فرع ===== */
-    for (const br of ['hadith', 'fiqh', 'leaders', 'zuhd']) {
+    /* ===== جولات كاملة في الألعاب ذات الأولوية ===== */
+    for (const br of ['whoami', 'mizan', 'timeline']) {
       const p = await newPage({ width: 390, height: 844 }, 'play-' + br);
-      await p.goto(base + '/play?branch=' + br);
+      await p.goto(base + '/play?game=' + br);
       await p.waitForSelector('.setup');
       await p.click('.seg-ctl button:has-text("٥")');
       await p.click('button:has-text("ابدأ")');
@@ -105,13 +109,13 @@ async function answerAny(page) {
     /* ===== الشرح والمعلومة الموثقة بعد السؤال، والمفاتيح ===== */
     {
       const p = await newPage(null, 'kbd');
-      await p.goto(base + '/play?game=librarian');
+      await p.goto(base + '/play?game=stances');
       await p.click('button:has-text("ابدأ")');
       await p.waitForSelector('.qcard');
       await p.keyboard.press('1');
       await p.waitForSelector('.feedback');
       check('المفتاح 1 يختار الإجابة الأولى', true);
-      check('بعد السؤال: شرح ومعلومة جديدة مع حالة التوثيق', (await p.locator('.feedback .cite').count()) >= 1 && (await p.locator('.feedback .learn').count()) === 1);
+      check('بعد السؤال: شرح وإحالة إلى الترجمة ورابط بدايتها', (await p.locator('.feedback .cite a:has-text("رابط بداية الترجمة")').count()) >= 1 && (await p.locator('.feedback .cite').first().innerText()).includes('ج٦'));
       await p.keyboard.press('Enter');
       await p.waitForTimeout(300);
       check('Enter ينتقل إلى السؤال التالي', (await p.locator('.feedback').count()) === 0);
@@ -122,12 +126,12 @@ async function answerAny(page) {
     }
 
     /* ===== كل الألعاب الإضافية ===== */
-    for (const g of ['whoami', 'timeline', 'network', 'librarian', 'researcher', 'fixbio', 'centuries', 'encyclopedia']) {
+    for (const g of ['ashath', 'links', 'stances', 'fixbio']) {
       const p = await newPage(null, 'game-' + g);
       await p.goto(base + '/play?game=' + g);
       await p.waitForSelector('.setup');
       const disabled = await p.locator('button:has-text("ابدأ")').isDisabled();
-      if (g === 'researcher') { check('لعبة الباحث الصغير: تعرض «لا يوجد محتوى معتمد» حتى تُرفق مقتطفات موثقة', disabled && (await p.locator('.empty').count()) === 1); await p.context().close(); continue; }
+      check('لعبة ' + g + ': متاحة', !disabled);
       await p.click('button:has-text("ابدأ")');
       await p.waitForSelector('.qcard');
       await answerAny(p);
@@ -172,14 +176,16 @@ async function answerAny(page) {
       const err = await admin.locator('main#adm .route-error').count();
       check('الإدارة: قسم ' + sec + ' يعمل', err === 0, err ? await admin.locator('main#adm .route-error').innerText() : '');
     }
-    await admin.goto(base + '/admin#/persons/demo_ibnmubarak');
+    await admin.goto(base + '/admin#/persons/t5_jafar');
     await admin.waitForSelector('text=المعلومات الموثقة');
     check('الإدارة: صفحة العلم بتصنيفات متعددة', (await admin.locator('text=العلماء').count()) >= 0 && (await admin.locator('.kv').innerText()).includes('رئيسي'));
-    await admin.goto(base + '/admin#/persons/demo_asim');
+    await admin.goto(base + '/admin#/persons/t5_yunusubayd');
     await admin.waitForSelector('text=تعارض بين الروايات');
     check('الإدارة: عرض التعارض بين المصادر للمشرف', true);
     await admin.goto(base + '/admin#/questions');
-    await admin.waitForSelector('.item-card');
+    await admin.waitForSelector('.toolbar select');
+    await admin.locator('.toolbar select').first().selectOption('');
+    await admin.waitForSelector('.item-card button:has-text("معاينة")');
     await admin.locator('.item-card button:has-text("معاينة")').first().click();
     await admin.waitForSelector('.modal .qcard');
     check('الإدارة: معاينة سؤال مسودة', true);
@@ -189,7 +195,7 @@ async function answerAny(page) {
     await admin.goto(base + '/admin#/import');
     await admin.waitForSelector('.dropzone');
     const tmpTxt = path.join(dataDir, 'names.txt');
-    fs.writeFileSync(tmpTxt, 'المحدثون:\n1- أبو زرعة الرازي (ت ٢٦٤هـ)\n2- الإمام البخاري\n');
+    fs.writeFileSync(tmpTxt, 'المحدثون:\n1- أبو زرعة الرازي (ت ٢٦٤هـ)\n2- الإمام جعفر الصادق\n');
     await admin.setInputFiles('#file', tmpTxt);
     await admin.waitForSelector('text=مراجعة: names.txt');
     check('الإدارة: رفع قائمة أسماء والانتقال لمراجعتها', (await admin.locator('tbody tr').count()) === 2);

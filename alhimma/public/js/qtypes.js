@@ -14,7 +14,7 @@
     const d = q.data;
     const ro = !!opts.readonly;
     let locked = ro;
-    const root = h('div', { class: 'qcard' + (opts.big ? ' big' : '') });
+    const root = h('div', { class: 'qcard' + (opts.big ? ' big' : '') + (q.style ? ' style-' + q.style : '') });
     const mode = Catalog.MODES[q.mode] || {};
     const diff = Catalog.DIFFICULTY[q.difficulty] || {};
     root.append(h('div', { class: 'qmeta' },
@@ -22,7 +22,9 @@
       h('span', { class: 'diff' }, '• ' + (diff.name || '') + ' • ' + num(diff.points || 0) + ' نقطة'),
       q.demo ? h('span', { class: 'badge badge-demo' }, 'تجريبي') : null));
     if (d.excerpt) root.append(h('blockquote', { class: 'excerpt' }, d.excerpt));
-    root.append(h('div', { class: 'prompt', id: 'qprompt' }, q.prompt));
+    root.append(q.style === 'scroll'
+      ? h('div', { class: 'scroll-card' }, h('div', { class: 'prompt', id: 'qprompt' }, q.prompt))
+      : h('div', { class: 'prompt', id: 'qprompt' }, q.prompt));
     const body = h('div');
     root.append(body);
     const api = { el: root, lock() { locked = true; root.querySelectorAll('button').forEach((b) => b.setAttribute('disabled', '')); }, showResult() {} };
@@ -258,6 +260,7 @@
           paint();
         } }, it.label));
       function drop(bi) { if (locked || sel == null) return; place[sel] = bi; sel = null; Sound.tick(); paint(); }
+      const beam = q.style === 'scale' ? h('div', { class: 'scale-beam', 'aria-hidden': 'true' }, h('i', { class: 'post' }), h('i', { class: 'bar' })) : null;
       function paint() {
         pool.innerHTML = ''; zones.forEach((z) => (z.querySelector('.chips').innerHTML = ''));
         chips.forEach((c, i) => {
@@ -265,10 +268,15 @@
           if (place[i] == null) pool.append(c); else zones[place[i]].querySelector('.chips').append(c);
         });
         if (!pool.children.length) pool.append(h('span', { class: 'muted small' }, 'وُزعت كل العناصر'));
+        if (beam) {
+          // الكفة الأولى (التوثيق) على اليمين: كلما ثقلت مال الذراع نحوها
+          const n0 = place.filter((p) => p === 0).length, n1 = place.filter((p) => p === 1).length;
+          beam.querySelector('.bar').style.transform = 'rotate(' + Math.max(-14, Math.min(14, (n0 - n1) * 5)) + 'deg)';
+        }
         confirm.disabled = place.some((p) => p == null) || locked;
       }
       paint();
-      body.append(h('div', { class: 'muted small', style: { marginBottom: '.4rem' } }, ro ? '' : 'اختر عنصرًا ثم اضغط على الخانة المناسبة.'), pool, h('div', { class: 'buckets' }, zones), ro ? null : confirm);
+      body.append(h('div', { class: 'muted small', style: { marginBottom: '.4rem' } }, ro ? '' : 'اختر عنصرًا ثم اضغط على الخانة المناسبة.'), pool, beam, h('div', { class: 'buckets' }, zones), ro ? null : confirm);
       api.showResult = (g) => {
         chips.forEach((c, i) => { c.disabled = true; c.classList.remove('sel'); c.classList.add(g && g.detail && g.detail[i] ? 'correct' : 'wrong'); });
         confirm.remove();

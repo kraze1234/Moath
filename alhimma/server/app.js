@@ -6,12 +6,12 @@ const path = require('path');
 const os = require('os');
 const { DB, uid } = require('./db.js');
 const { Auth, readCookie } = require('./auth.js');
-const { KB, shamelaUrl } = require('./kb.js');
+const { KB, shamelaUrl } = require('./kb.js'); // shamelaUrl يبني رابط توثيق فقط، دون أي اتصال
 const { generate } = require('./generator.js');
 const { SessionManager } = require('./sessions.js');
 const importers = require('./importers.js');
 const names = require('./names.js');
-const demo = require('./demo.js');
+const seed = require('./seed.js');
 const Catalog = require('../shared/catalog.js');
 const AR = require('../shared/arabic.js');
 
@@ -27,13 +27,13 @@ const MIME = {
   '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.woff2': 'font/woff2', '.woff': 'font/woff', '.webmanifest': 'application/manifest+json',
 };
 const EDITABLE = {
-  persons: ['name', 'fullName', 'aliases', 'kunya', 'laqab', 'categories', 'primaryCategory', 'level', 'bio', 'bioCitations', 'status', 'notes', 'reviewNote'],
+  persons: ['name', 'fullName', 'aliases', 'kunya', 'laqab', 'tabaqa', 'deathText', 'categories', 'primaryCategory', 'level', 'bio', 'bioCitations', 'status', 'notes', 'reviewNote'],
   claims: ['personId', 'kind', 'value', 'citations', 'status', 'note', 'reviewNote'],
   sources: ['title', 'author', 'authorDeath', 'shamelaId', 'url', 'edition', 'notes'],
   events: ['title', 'year', 'yearAlt', 'placeId', 'personIds', 'context', 'outcome', 'citations', 'status', 'note'],
   places: ['name', 'lat', 'lon', 'note'],
   terms: ['term', 'definition', 'madhhab', 'level', 'citations', 'status', 'note'],
-  questions: ['mode', 'type', 'style', 'categories', 'difficulty', 'prompt', 'data', 'explanation', 'refs', 'status', 'reviewNote'],
+  questions: ['mode', 'type', 'style', 'categories', 'difficulty', 'prompt', 'data', 'explanation', 'refs', 'citations', 'status', 'reviewNote'],
   categories: ['name', 'color'],
   teams: ['name', 'color', 'members'],
   competitions: ['name', 'answerMode', 'rounds', 'notes'],
@@ -58,11 +58,8 @@ function createApp(opts) {
   const sessions = new SessionManager(db, kb);
   let port = opts.port || 0;
 
-  if (!db.data.meta.demoInitialized && opts.demo !== false && !db.data.persons.length) {
-    demo.loadDemo(db, kb, generate);
-    db.data.meta.demoInitialized = true;
-    db.save();
-  }
+  // المحتوى العلمي المعتمد الأولي (الطبقة الخامسة) — يُحمّل مرة واحدة
+  if (opts.seed !== false) seed.applySeed(db);
 
   /* ===== أدوات ===== */
   const send = (res, code, body, headers) => {
@@ -121,6 +118,7 @@ function createApp(opts) {
     if (rec.difficulty != null && ![1, 2, 3].includes(Number(rec.difficulty))) throw new HttpError(400, 'الصعوبة من 1 إلى 3');
     if (rec.citations) for (const c of rec.citations) {
       if (c.page != null && c.page !== '' && !/^[0-9٠-٩]+$/.test(String(c.page))) throw new HttpError(400, 'رقم الصفحة يجب أن يكون رقمًا');
+      if (c.pages != null && c.pages !== '' && !/^[0-9٠-٩]+\s*[–-]\s*[0-9٠-٩]+$|^[0-9٠-٩]+$/.test(String(c.pages))) throw new HttpError(400, 'نطاق الصفحات مثل: 255–269');
     }
   }
 
@@ -182,7 +180,7 @@ function createApp(opts) {
       exhausted, total: pool.length,
       questions: shuffled.map((q) => ({
         id: q.id, mode: q.mode, type: q.type, style: q.style, difficulty: q.difficulty, prompt: q.prompt, data: q.data, explanation: q.explanation,
-        categories: q.categories, demo: !!q.demo, learn: kb.learnFor(q), citations: kb.citationsFor((q.refs || {}).claimIds),
+        categories: q.categories, demo: !!q.demo, learn: kb.learnFor(q), citations: kb.questionCitations(q),
       })),
     };
   }
@@ -310,20 +308,6 @@ function createApp(opts) {
     throw new HttpError(404, 'نوع تصدير غير معروف');
   }
 
-  /* ===== فحص رابط (للتحقق من روابط الشاملة عند توفر الإنترنت) ===== */
-  function checkLink(url) {
-    return new Promise((resolve) => {
-      let u;
-      try { u = new URL(url); } catch { return resolve({ ok: false, error: 'رابط غير صالح' }); }
-      if (!/^https?:$/.test(u.protocol)) return resolve({ ok: false, error: 'رابط غير صالح' });
-      const lib = u.protocol === 'https:' ? require('https') : http;
-      const req = lib.request(u, { method: 'HEAD', timeout: 7000 }, (r) => { r.resume(); resolve({ ok: r.statusCode < 400, status: r.statusCode }); });
-      req.on('timeout', () => { req.destroy(); resolve({ ok: false, error: 'انتهت المهلة — قد لا يتوفر اتصال بالإنترنت' }); });
-      req.on('error', (e) => resolve({ ok: false, error: 'تعذر الوصول: ' + e.code }));
-      req.end();
-    });
-  }
-
   /* ===== الملفات الثابتة ===== */
   function serveStatic(req, res, pathname) {
     let file = null;
@@ -369,7 +353,21 @@ function createApp(opts) {
       return send(res, 200, { configured: auth.isConfigured(), admin: isAdmin(req), demoInPlay: !!db.data.settings.demoInPlay, counts: counts(), lan: lanAddresses(port), port });
     }
     if (p === '/api/catalog' && m === 'GET') {
-      return send(res, 200, { ...Catalog, categories: db.data.categories, availability: availability(), demoInPlay: !!db.data.settings.demoInPlay });
+      const persons = kb.persons().map((x) => ({ id: x.id, name: x.name, tabaqa: x.tabaqa || null, deathText: x.deathText || (kb.deathYear(x.id) ? kb.deathYear(x.id) + 'هـ' : 'غير محددة'), death: kb.deathYear(x.id), categories: x.categories, bio: x.bio || '' }));
+      const hasDemo = db.data.questions.some((q) => q.demo && kb.usable(q));
+      return send(res, 200, { ...Catalog, categories: db.data.categories, availability: availability(), demoInPlay: hasDemo, persons });
+    }
+    // بطاقة العلم العامة: المعلومات المعتمدة فقط مع إحالاتها، وما يحتاج مراجعة يُذكر عدده دون عرضه
+    if (seg[0] === 'persons' && seg[1] && m === 'GET') {
+      const person = db.get('persons', seg[1]);
+      if (!person || !kb.usable(person)) throw new HttpError(404, 'العلم غير موجود');
+      const { persons: pm, sources: sm } = kb.maps();
+      return send(res, 200, {
+        id: person.id, name: person.name, aliases: person.aliases || [], tabaqa: person.tabaqa || null, deathText: person.deathText || null, bio: person.bio || '',
+        citations: (person.bioCitations || []).map((c) => kb.presentCitation(c, sm)),
+        facts: kb.claims(person.id).map((c) => ({ kind: c.kind, kindName: Catalog.CLAIM_KINDS[c.kind] || c.kind, text: require('./kb.js').claimText(c, pm) })),
+        underReview: db.data.claims.filter((c) => c.personId === person.id && c.status === 'review').length,
+      });
     }
     if (p === '/api/play/questions' && m === 'GET') return send(res, 200, playQuestions(url.searchParams));
     if (p === '/api/qr' && m === 'GET') {
@@ -479,8 +477,6 @@ function createApp(opts) {
         Object.assign(db.data.settings, allowed); db.save();
         return send(res, 200, db.data.settings);
       }
-      if (a1 === 'demo' && a2 === 'remove' && m === 'POST') { db.backupToDisk('before-demo-remove'); return send(res, 200, demo.removeDemo(db)); }
-      if (a1 === 'demo' && a2 === 'load' && m === 'POST') return send(res, 200, demo.loadDemo(db, kb, generate));
 
       if (a1 === 'generate' && m === 'POST') {
         const qs = generate(kb, { modes: body.modes, limitPerMode: Math.min(50, parseInt(body.limitPerMode, 10) || 10) });
@@ -549,19 +545,6 @@ function createApp(opts) {
         });
       }
 
-      if (a1 === 'shamela' && a2 === 'status' && m === 'GET') {
-        return send(res, 200, {
-          connector: 'disabled',
-          reason: 'لا توجد واجهة برمجية عامة موثقة للمكتبة الشاملة؛ واجهة الإصدار الرابع تتطلب مفتاحًا يُطلب من القائمين على المكتبة. لم يُفعَّل أي ربط مباشر.',
-          urlPattern: 'https://shamela.ws/book/{رقم الكتاب}/{رقم الصفحة}',
-          methods: ['استيراد ملفات الكتب المصدرة (TXT / DOCX / HTML / PDF) وبناء قاعدة محلية', 'إدخال رقم الكتاب في الشاملة لكل مصدر لتوليد روابط الصفحات', 'فحص الرابط عند توفر الإنترنت'],
-        });
-      }
-      if (a1 === 'shamela' && a2 === 'check' && m === 'POST') {
-        const target = body.url || shamelaUrl(body.bookId, body.page);
-        if (!target || !/^https:\/\/shamela\.ws\//.test(target)) throw new HttpError(400, 'أدخل رابطًا من shamela.ws أو رقم كتاب');
-        return send(res, 200, { url: target, ...(await checkLink(target)) });
-      }
 
       if (a1 === 'backup' && m === 'GET') {
         return send(res, 200, JSON.stringify(db.snapshot()), {

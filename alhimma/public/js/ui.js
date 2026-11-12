@@ -67,6 +67,7 @@
     lens: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="26" cy="26" r="16"/><path d="M38 38l18 18"/><path d="M18 22h16M18 28h12"/></svg>',
     quill: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M54 6C36 8 22 20 16 40l-6 18"/><path d="M54 6c-4 16-14 28-34 32"/><path d="M28 26l8 4"/></svg>',
     hourglass: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 6h32M16 58h32"/><path d="M20 6c0 14 24 18 24 26S20 46 20 58M44 6c0 14-24 18-24 26s24 14 24 26"/></svg>',
+    trio: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><rect x="6" y="14" width="14" height="40" rx="3"/><rect x="25" y="8" width="14" height="46" rx="3"/><rect x="44" y="14" width="14" height="40" rx="3"/><path d="M10 24h6M29 18h6M48 24h6"/></svg>',
     book: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M32 14c-8-6-18-6-26-4v42c8-2 18-2 26 4 8-6 18-6 26-4V10c-8-2-18-2-26 4z"/><path d="M32 14v42"/><path d="M14 22h10M14 30h10M40 22h10M40 30h10"/></svg>',
   };
   const emblem = (name, cls) => { const s = h('span', { class: cls || 'emb', 'aria-hidden': 'true' }); s.innerHTML = EMB[name] || EMB.star; return s; };
@@ -162,7 +163,7 @@
     const wrap = h('div');
     if (list && list.length) {
       for (const c of list) {
-        wrap.append(h('div', { class: 'cite' }, '📖 ', c.label || 'مصدر', c.url ? h('a', { href: c.url, target: '_blank', rel: 'noopener' }, 'فتح في المكتبة الشاملة') : null));
+        wrap.append(h('div', { class: 'cite' }, '📖 ', c.label || 'مصدر', c.url ? h('a', { href: c.url, target: '_blank', rel: 'noopener' }, c.urlLabel || 'رابط المصدر') : null));
       }
     } else {
       wrap.append(h('div', { class: 'cite none' }, demo ? '⚠ معلومة تجريبية — بانتظار التوثيق من المصادر' : '⚠ لم تُرفق إحالة لهذه المعلومة بعد'));

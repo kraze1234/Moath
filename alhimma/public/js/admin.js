@@ -69,7 +69,7 @@
   /* ===== الهيكل ===== */
   const SECTIONS = [
     ['dash', 'لوحة عامة', null], ['persons', 'الأعلام', 'المحتوى'], ['categories', 'التصنيفات والطبقات'], ['events', 'الوقائع والأماكن'], ['terms', 'المصطلحات'],
-    ['sources', 'المصادر والشاملة', 'التوثيق'], ['import', 'الاستيراد'], ['review', 'المراجعة والتعارضات'],
+    ['sources', 'المصادر', 'التوثيق'], ['import', 'الاستيراد'], ['review', 'المراجعة والتعارضات'],
     ['questions', 'بنك الأسئلة', 'المسابقات'], ['competitions', 'تخصيص المسابقات'], ['teams', 'الفرق'], ['results', 'الجلسات والنتائج'],
     ['backup', 'النسخ الاحتياطي', 'النظام'], ['settings', 'الإعدادات'],
   ];
@@ -119,11 +119,11 @@
       const s = sel([['', '— المصدر —'], ...sources.map((x) => [x.id, x.title + (x.author ? ' — ' + x.author : '')])], c.sourceId);
       const vol = inp(c.vol, { placeholder: 'ج', inputmode: 'numeric', 'aria-label': 'الجزء' });
       const page = inp(c.page, { placeholder: 'ص', inputmode: 'numeric', 'aria-label': 'الصفحة' });
-      const sp = inp(c.shamelaPage, { placeholder: 'صفحة الرابط', inputmode: 'numeric', 'aria-label': 'رقم الصفحة في رابط الشاملة', title: 'رقم الصفحة في رابط المكتبة الشاملة (قد يختلف عن رقم الطبعة)' });
+      const sp = inp(c.pages, { placeholder: 'نطاق الصفحات 255–269', 'aria-label': 'نطاق الصفحات', title: 'إن لم تُعرف الصفحة الدقيقة فاكتب نطاق صفحات الترجمة' });
       const ex = area(c.excerpt, { placeholder: 'نص المقتطف من المصدر (اختياري — يُستعمل في لعبة الباحث الصغير)', style: { minHeight: '50px' } });
-      const url = inp(c.url, { placeholder: 'رابط مباشر (اختياري)', style: { direction: 'ltr' } });
+      const url = inp(c.url, { placeholder: 'رابط بداية الترجمة (للتوثيق فقط)', style: { direction: 'ltr' } });
       const row = h('div', { class: 'item-card' }, h('div', { class: 'cit-row' }, s, vol, page, sp, h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: () => { row.remove(); rows.splice(rows.indexOf(rec), 1); } }, '✕')), url, h('div', { style: { height: '.3rem' } }), ex);
-      const rec = { row, get: () => ({ sourceId: s.value || null, vol: vol.value ? +AR.toLatinDigits(vol.value) : null, page: page.value ? +AR.toLatinDigits(page.value) : null, shamelaPage: sp.value ? +AR.toLatinDigits(sp.value) : null, url: url.value.trim() || null, excerpt: ex.value.trim() || null, documentId: c.documentId || null }) };
+      const rec = { row, get: () => ({ sourceId: s.value || null, vol: vol.value ? +AR.toLatinDigits(vol.value) : null, page: page.value ? +AR.toLatinDigits(page.value) : null, pages: sp.value.trim() ? AR.toLatinDigits(sp.value.trim()).replace('-', '–') : null, url: url.value.trim() || null, urlLabel: c.urlLabel || (url.value.trim() ? 'رابط بداية الترجمة' : null), personName: c.personName || null, excerpt: ex.value.trim() || null, documentId: c.documentId || null }) };
       rows.push(rec);
       box.insertBefore(row, addBtn);
     };
@@ -203,7 +203,7 @@
     if (!c.citations || !c.citations.length) return h('span', { class: 'badge badge-bad' }, 'بلا مصدر');
     return h('span', { class: 'small muted' }, c.citations.map((x) => {
       const s = sourcesById[x.sourceId];
-      return (s ? s.title : x.url ? 'رابط' : 'مقتطف') + (x.vol ? ' ج' + num(x.vol) : '') + (x.page ? ' ص' + num(x.page) : '');
+      return (s ? s.title : x.url ? 'رابط' : 'مقتطف') + (x.vol ? ' ج' + num(x.vol) : '') + (x.page ? ' ص' + num(x.page) : x.pages ? ' ص' + num(x.pages) : '');
     }).join('؛ '));
   }
 
@@ -232,7 +232,7 @@
         h('p', { class: 'muted small' }, 'روابط الدخول للهواتف على الشبكة المحلية:'),
         h('div', { class: 'pre', style: { direction: 'ltr' } }, (o.lan.length ? o.lan : [location.origin]).join('\n')),
         h('div', { class: 'row', style: { marginTop: '.8rem' } }, h('a', { class: 'btn btn-gold btn-sm', href: '/host' }, 'مسابقة جماعية جديدة'), h('a', { class: 'btn btn-sm', href: '/' }, 'الصفحة الرئيسية')),
-        c.demo.persons ? h('div', { class: 'demo-banner', style: { marginTop: '1rem', borderRadius: '10px' } }, 'يحتوي النظام على ' + num(c.demo.persons) + ' علمًا تجريبيًا و' + num(c.demo.questions) + ' سؤالًا تجريبيًا. احذفها من الإعدادات بعد استيراد قائمتك.') : null)));
+        null)));
   };
   const stat = (n, t) => h('div', { class: 'stat' }, h('b', null, num(n)), h('span', null, t));
 
@@ -248,7 +248,8 @@
     const q = inp('', { class: 'input search', placeholder: 'بحث بالاسم أو الصيغ البديلة…', type: 'search' });
     const fc = sel([['', 'كل التصنيفات'], ...C.categories.map((c) => [c.id, c.name])], '');
     const fs = sel([['', 'كل الحالات'], ...Object.entries(C.STATUS)], '');
-    const fd = sel([['', 'الكل'], ['real', 'الحقيقي فقط'], ['demo', 'التجريبي فقط']], '');
+    const tabs = [...new Set(persons.map((p) => p.tabaqa).filter(Boolean))].sort((a, b) => a - b);
+    const fd = sel([['', 'كل الطبقات'], ...tabs.map((t) => [String(t), 'الطبقة ' + num(t)])], '');
     const sort = sel([['death', 'ترتيب بسنة الوفاة'], ['name', 'ترتيب أبجدي'], ['new', 'الأحدث إضافة']], 'death');
     const tbody = h('tbody');
     mainEl.append(h('div', { class: 'toolbar dark' }, q, fc, fs, fd, sort), h('div', { class: 'tbl-wrap' }, h('table', { class: 'tbl' },
@@ -256,7 +257,7 @@
     const paint = () => {
       const k = AR.normalize(q.value);
       let list = persons.filter((p) => (!k || AR.normalize([p.name, ...(p.aliases || [])].join(' ')).includes(k)) && (!fc.value || (p.categories || []).includes(fc.value)) &&
-        (!fs.value || p.status === fs.value) && (!fd.value || (fd.value === 'demo' ? p.demo : !p.demo)));
+        (!fs.value || p.status === fs.value) && (!fd.value || String(p.tabaqa) === fd.value));
       const dy = (p) => { const s = deathOf[p.id]; return s && s.size === 1 ? [...s][0] : s && s.size > 1 ? -1 : 99999; };
       if (sort.value === 'death') list.sort((a, b) => dy(a) - dy(b));
       if (sort.value === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
@@ -267,7 +268,7 @@
         tbody.append(h('tr', null,
           h('td', null, h('a', { href: '#/persons/' + p.id }, p.name), ' ', demoBadge(p), (p.aliases || []).length ? h('div', { class: 'small muted' }, p.aliases.join('، ')) : null),
           h('td', null, (p.categories || []).map((c, i) => h('span', { class: 'badge ' + (c === p.primaryCategory ? 'badge-ok' : 'badge-info'), style: { marginInlineEnd: '.2rem' } }, catName[c] || c, i === 0 && c === p.primaryCategory ? ' ★' : ''))),
-          h('td', null, !s ? h('span', { class: 'muted small' }, 'غير محددة') : s.size > 1 ? h('span', { class: 'badge badge-bad' }, 'تعارض: ' + [...s].map(num).join(' / ')) : num([...s][0]) + 'هـ'),
+          h('td', null, p.deathText ? h('div', { class: 'small' }, num(p.deathText)) : null, p.tabaqa ? h('div', { class: 'small muted' }, 'الطبقة ' + num(p.tabaqa)) : null, !s ? h('span', { class: 'muted small' }, p.deathText ? '' : 'غير محددة') : s.size > 1 ? h('span', { class: 'badge badge-bad' }, 'تعارض: ' + [...s].map(num).join(' / ')) : num([...s][0]) + 'هـ'),
           h('td', null, num(claims.filter((c) => c.personId === p.id).length)),
           h('td', null, statusBadge(p.status)),
           h('td', { class: 'actions' }, h('a', { class: 'btn btn-sm', href: '#/persons/' + p.id }, 'فتح'))));
@@ -287,6 +288,8 @@
     const cats = h('div', { class: 'row' }, C.categories.map((c) => h('label', { class: 'row small', style: { gap: '.3rem' } }, h('input', { type: 'checkbox', value: c.id, checked: (p.categories || []).includes(c.id) }), c.name)));
     const primary = sel([['', '— التصنيف الرئيسي —'], ...C.categories.map((c) => [c.id, c.name])], p.primaryCategory);
     const level = sel([[1, 'مشهور (سهل)'], [2, 'متوسط'], [3, 'أقل شهرة (صعب)']], p.level || 2);
+    const tabaqa = inp(p.tabaqa, { inputmode: 'numeric', placeholder: 'مثل: 5' });
+    const deathText = inp(p.deathText, { placeholder: 'مثل: 139 أو 140هـ / نحو 152–160هـ / غير محددة' });
     const bio = area(p.bio, { placeholder: 'نبذة علمية مختصرة — تُكتب من المصادر وتُوثق بالإحالات أدناه' });
     const bioC = citationsEditor(p.bioCitations, sources);
     const status = sel(Object.entries(C.STATUS), p.status);
@@ -294,12 +297,13 @@
       h('div', { class: 'cols-2' }, field('الاسم', name), field('الاسم الكامل', full)), field('الصيغ البديلة', aliases),
       field('التصنيفات', cats, 'قد يكون العلم محدثًا وفقيهًا وزاهدًا معًا: اختر كل ما يناسب، وحدد الرئيسي.'),
       h('div', { class: 'cols-2' }, field('التصنيف الرئيسي', primary), field('درجة الشهرة (للصعوبة)', level)),
+      h('div', { class: 'cols-2' }, field('الطبقة', tabaqa), field('الوفاة كما ترد في المصدر (للعرض)', deathText, 'سنة الوفاة المعتمدة للألعاب تُؤخذ من «المعلومات» الموثقة.')),
       field('النبذة', bio), h('div', { class: 'small muted' }, 'مصادر النبذة:'), bioC, h('div', { style: { height: '.6rem' } }), field('الحالة', status)),
     (close) => [h('button', { class: 'btn btn-gold', type: 'button', onclick: async () => {
       const categories = [...cats.querySelectorAll('input:checked')].map((i) => i.value);
       let prim = primary.value || categories[0] || null;
       if (prim && !categories.includes(prim)) categories.unshift(prim);
-      const body = { name: name.value.trim(), fullName: full.value.trim() || null, aliases: aliases.value.split(/[،,]/).map((s) => s.trim()).filter(Boolean), categories, primaryCategory: prim, level: +level.value, bio: bio.value.trim(), bioCitations: bioC.get(), status: status.value };
+      const body = { name: name.value.trim(), fullName: full.value.trim() || null, aliases: aliases.value.split(/[،,]/).map((s) => s.trim()).filter(Boolean), categories, primaryCategory: prim, level: +level.value, tabaqa: +AR.toLatinDigits(tabaqa.value) || null, deathText: deathText.value.trim() || null, bio: bio.value.trim(), bioCitations: bioC.get(), status: status.value };
       try {
         const r = p.id ? await api('/api/admin/persons/' + p.id, { method: 'PUT', body }) : await api('/api/admin/persons', { body });
         invalidate('persons'); toast('حُفظ', 'ok'); close();
@@ -471,19 +475,15 @@
 
   /* ===== المصادر والشاملة ===== */
   VIEWS.sources = async () => {
-    const [sources, docs, sh] = await Promise.all([load('sources', true), load('documents', true), api('/api/admin/shamela/status')]);
-    title('المصادر والمكتبة الشاملة', h('button', { class: 'btn btn-gold btn-sm', type: 'button', onclick: () => srcForm() }, '+ مصدر'));
-    mainEl.append(h('section', { class: 'panel', style: { marginBottom: '1rem' } },
-      h('div', { class: 'hd row' }, h('h3', { style: { margin: 0 } }, 'حالة الربط بالمكتبة الشاملة'), h('span', { class: 'badge badge-warn' }, 'لا يوجد ربط مباشر')),
-      h('p', null, sh.reason),
-      h('p', { class: 'small' }, 'ما يعمل فعليًا الآن:'), h('ul', { class: 'small' }, sh.methods.map((m) => h('li', null, m))),
-      h('p', { class: 'small muted' }, 'صيغة روابط الصفحات المستعملة: ', h('code', { style: { direction: 'ltr', display: 'inline-block' } }, sh.urlPattern), ' — تحقق من الرابط بالزر «فحص» عند توفر الإنترنت.'),
-      linkChecker()));
+    const [sources, docs] = await Promise.all([load('sources', true), load('documents', true)]);
+    title('المصادر', h('button', { class: 'btn btn-gold btn-sm', type: 'button', onclick: () => srcForm() }, '+ مصدر'));
+    mainEl.append(h('p', { class: 'muted small' }, 'روابط المصادر للتوثيق فقط؛ المنصة لا تتصل بأي موقع خارجي ولا تجلب منه محتوى. يُدخل المحتوى العلمي يدويًا أو بالاستيراد من الملفات.'));
     const list = h('div', { class: 'card-list' });
     for (const s of sources) {
       const n = docs.filter((d) => d.sourceId === s.id).length;
       list.append(h('div', { class: 'item-card' }, h('div', { class: 'hd' }, h('b', null, s.title), s.author ? h('span', { class: 'muted' }, '— ' + s.author + (s.authorDeath ? ' (ت ' + num(s.authorDeath) + 'هـ)' : '')) : null,
-        s.shamelaId ? h('a', { class: 'badge badge-ok', href: 'https://shamela.ws/book/' + s.shamelaId, target: '_blank', rel: 'noopener' }, 'الشاملة #' + s.shamelaId) : h('span', { class: 'badge badge-warn' }, 'بلا رقم في الشاملة'),
+        s.edition ? h('span', { class: 'badge badge-info' }, 'ط. ' + s.edition) : null,
+        s.url ? h('a', { class: 'badge badge-ok', href: s.url, target: '_blank', rel: 'noopener' }, 'رابط توثيق') : null,
         n ? h('span', { class: 'badge badge-info' }, num(n) + ' نص مستورد') : null, h('span', { class: 'spacer' }),
         h('button', { class: 'btn btn-sm', type: 'button', onclick: () => srcForm(s) }, 'تعديل'),
         h('button', { class: 'btn btn-sm btn-ghost', type: 'button', onclick: async () => { if (confirm('حذف المصدر؟ الإحالات إليه ستبقى بلا عنوان.')) { await api('/api/admin/sources/' + s.id, { method: 'DELETE' }); route(); } } }, '🗑')),
@@ -500,21 +500,12 @@
     if (!docs.length) dl.append(h('div', { class: 'empty' }, 'لا توجد نصوص مستوردة. ', h('a', { href: '#/import' }, 'استورد كتابًا من الشاملة')));
     mainEl.append(h('h3', { style: { marginTop: '1.5rem' } }, 'النصوص المستوردة (القاعدة المحلية)'), dl);
 
-    function linkChecker() {
-      const b = inp('', { placeholder: 'رقم الكتاب', inputmode: 'numeric', style: { width: '120px' } });
-      const p = inp('', { placeholder: 'الصفحة', inputmode: 'numeric', style: { width: '100px' } });
-      const out = h('span', { class: 'small' });
-      return h('div', { class: 'row dark' }, b, p, h('button', { class: 'btn btn-sm', type: 'button', onclick: async () => {
-        out.textContent = '…';
-        try { const r = await api('/api/admin/shamela/check', { body: { bookId: b.value, page: p.value } }); out.innerHTML = ''; out.append(h('a', { href: r.url, target: '_blank', rel: 'noopener', style: { direction: 'ltr' } }, r.url), ' — ', r.ok ? '✓ الرابط يعمل' : '✗ ' + (r.error || 'رمز ' + r.status)); } catch (e) { out.textContent = e.message; }
-      } }, 'فحص'), out);
-    }
     function srcForm(s) {
       s = s || {};
-      const t = inp(s.title), a = inp(s.author), ad = inp(s.authorDeath, { inputmode: 'numeric' }), sid = inp(s.shamelaId, { inputmode: 'numeric', placeholder: 'من رابط الكتاب: shamela.ws/book/<الرقم>' }), u = inp(s.url, { style: { direction: 'ltr' } }), ed = inp(s.edition), n = area(s.notes);
-      modal(s.id ? 'تعديل مصدر' : 'مصدر جديد', h('div', null, field('عنوان الكتاب', t), h('div', { class: 'cols-2' }, field('المؤلف', a), field('وفاة المؤلف (هـ)', ad)), field('رقم الكتاب في المكتبة الشاملة', sid, 'أدخله بعد التحقق منه في موقع الشاملة؛ لا تخمّنه.'), field('رابط آخر', u), field('الطبعة / التحقيق', ed), field('ملاحظات', n)),
+      const t = inp(s.title), a = inp(s.author), ad = inp(s.authorDeath, { inputmode: 'numeric' }), u = inp(s.url, { style: { direction: 'ltr' } }), ed = inp(s.edition), n = area(s.notes);
+      modal(s.id ? 'تعديل مصدر' : 'مصدر جديد', h('div', null, field('عنوان الكتاب', t), h('div', { class: 'cols-2' }, field('المؤلف', a), field('وفاة المؤلف (هـ)', ad)), field('رابط المصدر (للتوثيق فقط)', u), field('الطبعة / التحقيق', ed), field('ملاحظات', n)),
         (close) => [h('button', { class: 'btn btn-gold', type: 'button', onclick: async () => {
-          const body = { title: t.value.trim(), author: a.value.trim(), authorDeath: +AR.toLatinDigits(ad.value) || null, shamelaId: +AR.toLatinDigits(sid.value) || null, url: u.value.trim() || null, edition: ed.value.trim() || null, notes: n.value.trim() };
+          const body = { title: t.value.trim(), author: a.value.trim(), authorDeath: +AR.toLatinDigits(ad.value) || null, url: u.value.trim() || null, edition: ed.value.trim() || null, notes: n.value.trim() };
           try { if (s.id) await api('/api/admin/sources/' + s.id, { method: 'PUT', body }); else await api('/api/admin/sources', { body }); invalidate('sources'); close(); route(); } catch (er) { toast(er.message, 'err'); }
         } }, 'حفظ')]);
     }
@@ -549,8 +540,8 @@
     };
     const help = h('p', { class: 'muted small' }, HELP.names);
     const srcSel = sel([['', '— مصدر جديد —'], ...sources.map((s) => [s.id, s.title])], '');
-    const sTitle = inp('', { placeholder: 'عنوان الكتاب' }), sAuthor = inp('', { placeholder: 'المؤلف' }), sId = inp('', { placeholder: 'رقمه في الشاملة (اختياري)', inputmode: 'numeric' });
-    const srcBox = h('div', { class: 'hidden dark', style: { marginTop: '.6rem' } }, field('ربط النص بمصدر', srcSel), h('div', { class: 'cols-2' }, sTitle, sAuthor), h('div', { style: { height: '.4rem' } }), sId);
+    const sTitle = inp('', { placeholder: 'عنوان الكتاب' }), sAuthor = inp('', { placeholder: 'المؤلف' });
+    const srcBox = h('div', { class: 'hidden dark', style: { marginTop: '.6rem' } }, field('ربط النص بمصدر', srcSel), h('div', { class: 'cols-2' }, sTitle, sAuthor));
     const file = h('input', { type: 'file', accept: '.csv,.tsv,.xlsx,.json,.txt,.pdf,.docx,.html,.htm', class: 'hidden', id: 'file' });
     const status = h('div', { class: 'small', style: { marginTop: '.6rem' } });
     const drop = h('label', { class: 'dropzone', for: 'file' }, h('b', null, 'اسحب الملف هنا أو اضغط للاختيار'), h('div', { class: 'small muted' }, 'PDF · CSV · Excel (xlsx) · JSON · TXT · Word (docx) · HTML — حتى ٤٠ ميغابايت'));
@@ -561,7 +552,7 @@
       const b64 = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(f); });
       try {
         const body = { filename: f.name, contentBase64: b64, kind };
-        if (kind === 'source') { body.sourceId = srcSel.value || null; body.title = sTitle.value || f.name.replace(/\.[^.]+$/, ''); body.author = sAuthor.value; body.shamelaId = sId.value; }
+        if (kind === 'source') { body.sourceId = srcSel.value || null; body.title = sTitle.value || f.name.replace(/\.[^.]+$/, ''); body.author = sAuthor.value; }
         const r = await api('/api/admin/import', { body });
         invalidate('imports', 'documents', 'sources', 'persons', 'claims');
         if (r.kind === 'names') { toast('استُخرج ' + num(r.import.items.length) + ' اسمًا', 'ok'); location.hash = '#/import/' + r.import.id; }
@@ -861,16 +852,8 @@
   VIEWS.settings = async () => {
     const o = overview;
     title('الإعدادات');
-    const demoT = h('input', { type: 'checkbox', checked: !!o.settings.demoInPlay });
-    demoT.addEventListener('change', async () => { await api('/api/admin/settings', { method: 'PUT', body: { demoInPlay: demoT.checked } }); toast(demoT.checked ? 'البيانات التجريبية تظهر في الألعاب' : 'أُخفيت البيانات التجريبية من الألعاب', 'ok'); });
     const cur = inp('', { type: 'password', autocomplete: 'current-password' }), nw = inp('', { type: 'password', autocomplete: 'new-password' });
     mainEl.append(h('div', { class: 'cols-2' },
-      h('section', { class: 'panel' }, h('h3', null, 'البيانات التجريبية'),
-        h('label', { class: 'row' }, demoT, 'إظهار البيانات التجريبية في الألعاب'),
-        h('p', { class: 'small muted' }, 'البيانات التجريبية: ' + num(o.counts.demo.persons) + ' علمًا و' + num(o.counts.demo.questions) + ' سؤالًا. لا تحمل إحالات ولا أرقام صفحات، وتظهر للاعبين بعلامة «تجريبي».'),
-        h('div', { class: 'row' },
-          h('button', { class: 'btn btn-red btn-sm', type: 'button', onclick: async () => { if (!confirm('حذف كل البيانات التجريبية؟ (تُحفظ نسخة احتياطية أولًا)')) return; const r = await api('/api/admin/demo/remove', { body: {} }); toast('حُذف: ' + num(r.persons) + ' علمًا، ' + num(r.questions) + ' سؤالًا', 'ok'); Object.keys(cache).forEach((k) => delete cache[k]); route(); } }, 'حذف البيانات التجريبية'),
-          h('button', { class: 'btn btn-sm', type: 'button', onclick: async () => { const r = await api('/api/admin/demo/load', { body: {} }); toast('حُمّل ' + num(r.persons) + ' علمًا تجريبيًا', 'ok'); route(); } }, 'إعادة تحميلها'))),
       h('section', { class: 'panel dark' }, h('h3', null, 'تغيير كلمة المرور'), field('الحالية', cur), field('الجديدة (٨ أحرف على الأقل)', nw),
         h('button', { class: 'btn btn-gold btn-sm', type: 'button', onclick: async () => { try { await api('/api/auth/password', { body: { current: cur.value, next: nw.value } }); toast('تغيرت كلمة المرور', 'ok'); cur.value = nw.value = ''; } catch (e) { toast(e.message, 'err'); } } }, 'حفظ'))),
     h('section', { class: 'panel', style: { marginTop: '1rem' } }, h('h3', null, 'عن المنصة'),

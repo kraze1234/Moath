@@ -63,40 +63,51 @@ test('حماية الإدارة: 401 دون دخول، ورفض الطلبات �
   assert.match(blocked.body.error, /محاولات كثيرة/);
 });
 
-test('حالة الشاملة لا تدّعي ربطًا مباشرًا، ورابط الفحص مقيد بموقع الشاملة', async () => {
-  const s = await req('GET', '/api/admin/shamela/status');
-  assert.equal(s.body.connector, 'disabled');
-  assert.equal((await req('POST', '/api/admin/shamela/check', { url: 'http://evil.example/' })).status, 400);
+test('لا اتصال بالمكتبة الشاملة: مسارات الربط غير موجودة', async () => {
+  assert.equal((await req('GET', '/api/admin/shamela/status')).status, 404);
+  assert.equal((await req('POST', '/api/admin/shamela/check', { url: 'https://shamela.ws/' })).status, 404);
+});
+
+test('بطاقة العلم العامة: المعتمد فقط مع إحالته، وعدد ما يحتاج مراجعة', async () => {
+  const r = await req('GET', '/api/persons/t5_musa');
+  assert.equal(r.status, 200);
+  assert.ok(r.body.facts.some((f) => f.text.includes('العبد الصالح')));
+  assert.ok(!r.body.facts.some((f) => f.text.includes('ثلاثمائة') || f.text.includes('بغداد')));
+  assert.equal(r.body.underReview, 2);
+  assert.equal(r.body.citations[0].url, 'https://shamela.ws/book/10906/4520');
+  const cat = await req('GET', '/api/catalog');
+  assert.equal(cat.body.persons.length, 10);
+  assert.equal(cat.body.persons.find((p) => p.id === 't5_ayli').deathText, 'نحو 152–160هـ');
 });
 
 test('اللعب الفردي يعرض المعتمد فقط ويستثني المكرر', async () => {
-  const r = await req('GET', '/api/play/questions?modes=work-author&count=5');
+  const r = await req('GET', '/api/play/questions?modes=reveal&count=5');
   assert.equal(r.body.questions.length, 5);
   const all = app.db.data.questions;
   for (const q of r.body.questions) assert.equal(all.find((x) => x.id === q.id).status, 'approved');
   const ex = r.body.questions.map((q) => q.id).join(',');
-  const r2 = await req('GET', '/api/play/questions?modes=work-author&count=5&exclude=' + ex);
+  const r2 = await req('GET', '/api/play/questions?modes=reveal&count=5&exclude=' + ex);
   assert.ok(r2.body.questions.every((q) => !ex.includes(q.id)));
   // كل سؤال يحمل معلومة تعليمية أو شرحًا
-  assert.ok(r.body.questions.every((q) => q.explanation));
+  assert.ok(r.body.questions.every((q) => q.explanation && q.citations.length && q.citations[0].urlLabel === 'رابط بداية الترجمة'));
 });
 
 test('استيراد قائمة أسماء: تنظيف وتوحيد ومطابقة، ولا إضافة قبل قرار المشرف', async () => {
   const before = app.db.data.persons.length;
-  const txt = '## المحدثون\n1- الإمام البخاري\n2- أبو زرعة الرازي (ت 264هـ)\n3- أبو زرعة الرازي\n\nالزهاد:\n- بشر الحافي\n';
+  const txt = '## المحدثون\n1- الإمام جعفر الصادق\n2- أبو زرعة الرازي (ت 264هـ)\n3- أبو زرعة الرازي\n\nالزهاد:\n- بشر الحافي\n';
   const r = await req('POST', '/api/admin/import', { filename: 'names.txt', contentBase64: Buffer.from(txt).toString('base64'), kind: 'names' });
   assert.equal(r.status, 200);
   const imp = r.body.import;
   assert.equal(imp.items.length, 3);
   assert.equal(imp.duplicatesRemoved, 1);
   assert.equal(app.db.data.persons.length, before, 'لا يُضاف أحد قبل القرار');
-  const bukhari = imp.items.find((i) => i.name.includes('البخاري'));
-  assert.equal(bukhari.matches[0].personId, 'demo_bukhari'); // مرشح للمطابقة
-  assert.equal(bukhari.decision, 'pending'); // اسم مختصر: لا دمج تلقائي، القرار للمشرف
+  const jafar = imp.items.find((i) => i.name.includes('جعفر'));
+  assert.equal(jafar.matches[0].personId, 't5_jafar');
+  assert.equal(jafar.decision, 'merge');
   const abuZura = imp.items.find((i) => i.name.includes('زرعة'));
   assert.equal(abuZura.deathHint, 264);
   assert.equal(abuZura.categoryHint, 'muhaddith');
-  const decisions = imp.items.map((it, index) => ({ index, decision: it.name.includes('البخاري') ? 'merge' : 'new', personId: it.matches[0] ? it.matches[0].personId : null }));
+  const decisions = imp.items.map((it, index) => ({ index, decision: it.name.includes('جعفر') ? 'merge' : 'new', personId: it.matches[0] ? it.matches[0].personId : null }));
   assert.equal((await req('POST', '/api/admin/imports/' + imp.id + '/decide', { decisions })).status, 200);
   const ap = await req('POST', '/api/admin/imports/' + imp.id + '/apply', {});
   assert.equal(ap.body.created, 2);
@@ -129,10 +140,11 @@ test('استيراد نص مصدر بعلامات الصفحات، والبحث 
 
 test('اعتماد معلومة بلا قيمة صحيحة يُرفض، وتعديل معلومة معتمدة يعيد أسئلتها للمراجعة', async () => {
   assert.equal((await req('POST', '/api/admin/claims', { personId: 'nope', kind: 'death', value: { year: 1 } })).status, 400);
-  assert.equal((await req('POST', '/api/admin/claims', { personId: 'demo_bukhari', kind: 'bad' })).status, 400);
-  const q = app.db.data.questions.find((x) => x.status === 'approved' && x.mode === 'work-author');
-  const claimId = q.refs.claimIds[0];
-  const r = await req('PUT', '/api/admin/claims/' + claimId, { value: { title: 'عنوان معدّل' } });
+  assert.equal((await req('POST', '/api/admin/claims', { personId: 't5_jafar', kind: 'bad' })).status, 400);
+  const claimId = app.db.data.claims.find((c) => c.personId === 't5_jafar' && c.kind === 'birth').id;
+  const q = (await req('POST', '/api/admin/questions', { mode: 'cloze', type: 'choice', prompt: 'متى ولد جعفر؟', data: { options: ['80هـ', '90هـ'], answer: 0 }, refs: { personIds: ['t5_jafar'], claimIds: [claimId] }, status: 'approved' })).body;
+  assert.equal((await req('POST', '/api/admin/claims', { personId: 't5_jafar', kind: 'death', value: { year: 1 }, citations: [{ pages: 'abc' }] })).status, 400);
+  const r = await req('PUT', '/api/admin/claims/' + claimId, { value: { year: 81 } });
   assert.equal(r.status, 200);
   assert.equal(app.db.data.questions.find((x) => x.id === q.id).status, 'review');
 });
@@ -244,10 +256,10 @@ test('النسخ الاحتياطي عبر الواجهة والاستعادة',
   assert.equal((await req('POST', '/api/admin/restore', { snapshot: { kind: 'x' } })).status, 400);
 });
 
-test('حذف البيانات التجريبية من الإدارة', async () => {
-  const r = await req('POST', '/api/admin/demo/remove', {});
-  assert.ok(r.body.persons > 0);
-  assert.ok(app.db.data.persons.every((p) => !p.demo));
-  const pq = await req('GET', '/api/play/questions?count=5');
-  assert.equal(pq.body.questions.length, 0);
+test('ألعاب الإصدار: لكل لعبة أسئلة معتمدة', async () => {
+  const cat = (await req('GET', '/api/catalog')).body;
+  for (const g of cat.GAMES) {
+    const r = await req('GET', '/api/play/questions?count=3&modes=' + g.modes.join(','));
+    assert.ok(r.body.questions.length >= 2, g.title);
+  }
 });

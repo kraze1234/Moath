@@ -21,16 +21,16 @@
   const MODES = {
     'work-author':   { title: 'من صاحب الكتاب؟', type: 'choice', desc: 'يظهر اسم مؤلَّف وتختار مؤلفه.' },
     'shelf':         { title: 'أمين المكتبة', type: 'choice', style: 'shelf', desc: 'اختر كتاب العالم من رفوف المكتبة.' },
-    'reveal':        { title: 'اكتشف الشخصية', type: 'reveal', desc: 'معلومات تنكشف تدريجيًا، وكلما عرفته أبكر نلت أكثر.' },
+    'reveal':        { title: 'من أنا؟', type: 'reveal', desc: 'معلومات تنكشف تدريجيًا، وكلما عرفته أبكر نلت أكثر.' },
     'card':          { title: 'بطاقة العالم المجهول', type: 'card', desc: 'اكشف أجزاء البطاقة مقابل خصم من النقاط.' },
-    'order-death':   { title: 'سلسلة التراجم', type: 'order', desc: 'رتّب الأعلام بحسب سنة الوفاة من الأقدم.' },
+    'order-death':   { title: 'رحلة عبر الزمن', type: 'order', style: 'timeline', desc: 'رتّب الأعلام بحسب سنة الوفاة من الأقدم.' },
     'match-work':    { title: 'صل العالم بمؤلَّفه', type: 'match', desc: 'اربط كل عالم بكتابه.' },
     'teacher':       { title: 'من الشيخ ومن التلميذ؟', type: 'choice', desc: 'علاقة تتلمذ مثبتة في المصادر.' },
-    'match-teacher': { title: 'شبكة العلماء', type: 'match', style: 'network', desc: 'صل كل شيخ بتلميذه.' },
+    'match-teacher': { title: 'شيخ وتلميذ', type: 'match', style: 'network', desc: 'صل كل علم بشيوخه وتلاميذه.' },
     'bucket-century':{ title: 'رحلة عبر القرون', type: 'bucket', desc: 'ضع كل عالم في قرنه الهجري.' },
     'bucket-madhhab':{ title: 'خريطة المدارس الفقهية', type: 'bucket', desc: 'ضع كل فقيه في مدرسته.' },
     'term':          { title: 'تحدي المصطلحات', type: 'choice', desc: 'المصطلح الفقهي وشرحه من مصدر معتمد.' },
-    'spot':          { title: 'صحّح الترجمة', type: 'spot', desc: 'بطاقة فيها معلومة واحدة خاطئة: اكتشفها.' },
+    'spot':          { title: 'صحّح المعلومة', type: 'spot', desc: 'بطاقة فيها معلومة واحدة خاطئة: اكتشفها.' },
     'order-event':   { title: 'الخط الزمني للوقائع', type: 'order', desc: 'رتّب الوقائع التاريخية زمنيًا.' },
     'match-event':   { title: 'اربط القائد بالحدث', type: 'match', desc: 'صل كل قائد بالواقعة التي ارتبط بها.' },
     'map':           { title: 'خريطة الأحداث', type: 'choice', style: 'map', desc: 'حدّد موقع الواقعة على الخريطة.' },
@@ -40,6 +40,11 @@
     'cloze':         { title: 'أكمل المعلومة', type: 'choice', desc: 'معلومة ناقصة: أكملها.' },
     'lesson':        { title: 'الدرس المستفاد', type: 'choice', desc: 'ما الدرس الذي يُستفاد من الموقف؟' },
     'excerpt':       { title: 'الباحث الصغير', type: 'choice', desc: 'استخرج الإجابة من مقتطف علمي موثق.' },
+    'mizan':         { title: 'كفتا الميزان', type: 'bucket', style: 'scale', desc: 'ضع أقوال النقاد في كفة التوثيق أو التجريح.' },
+    'mizan-q':       { title: 'أحكام النقاد', type: 'choice', desc: 'ما خلاصة أقوال النقاد في الراوي؟ مع بيان الاختلاف.' },
+    'ashath':        { title: 'لوحة الأشاعثة', type: 'bucket', style: 'trio', desc: 'انسب كل معلومة إلى صاحبها من الأشاعثة الثلاثة.' },
+    'ashath-q':      { title: 'تمييز الأشاعثة', type: 'choice', desc: 'أيّ الأشاعثة الثلاثة المقصود؟' },
+    'stance-who':    { title: 'صاحب الموقف', type: 'choice', style: 'scroll', desc: 'تعرّف على العلم من موقفه أو قوله.' },
   };
 
   const BRANCHES = [
@@ -65,27 +70,26 @@
     },
   ];
 
-  // الألعاب الإضافية — تعمل عبر كل التصنيفات
+  // ألعاب الإصدار الحالي (الطبقة الخامسة) — لكل لعبة أسلوب تفاعل مختلف
   const GAMES = [
-    { id: 'whoami', title: 'من أنا؟', modes: ['reveal'], emblem: 'mask', desc: 'بطاقة مخفية تنكشف معلومة بعد معلومة.' },
-    { id: 'timeline', title: 'الخط الزمني', modes: ['order-death', 'order-event'], emblem: 'line', desc: 'اسحب البطاقات ورتّبها بحسب الوفاة الهجرية.' },
-    { id: 'network', title: 'شبكة العلماء', modes: ['match-teacher', 'teacher'], emblem: 'net', desc: 'اربط الشيوخ بتلاميذهم بعلاقات موثقة.' },
-    { id: 'librarian', title: 'أمين المكتبة', modes: ['shelf', 'work-author'], emblem: 'shelf', desc: 'اختر الكتاب الصحيح من رفوف المكتبة.' },
-    { id: 'researcher', title: 'الباحث الصغير', modes: ['excerpt'], emblem: 'lens', desc: 'اقرأ المقتطف الموثق واستخرج الإجابة.' },
-    { id: 'fixbio', title: 'صحّح الترجمة', modes: ['spot'], emblem: 'quill', desc: 'معلومة واحدة خاطئة في البطاقة.' },
-    { id: 'centuries', title: 'رحلة عبر القرون', modes: ['bucket-century'], emblem: 'hourglass', desc: 'ضع كل عالم في قرنه.' },
-    { id: 'encyclopedia', title: 'الموسوعة المفقودة', modes: '*', emblem: 'book', desc: 'حلّ التحديات لتجمع صفحات الموسوعة.', pages: 8 },
+    { id: 'whoami', title: 'من أنا؟', modes: ['reveal'], emblem: 'mask', priority: true, desc: 'معلومات تنكشف تدريجيًا، وكلما عرفت العلم أبكر نلت نقاطًا أكثر.' },
+    { id: 'mizan', title: 'ميزان الرواة', modes: ['mizan', 'mizan-q'], emblem: 'scale', priority: true, desc: 'وازن أقوال النقاد في الرواة: توثيق وتجريح واختلاف.' },
+    { id: 'timeline', title: 'رحلة عبر الزمن', modes: ['order-death'], emblem: 'hourglass', priority: true, desc: 'رتّب الأعلام على خط الزمن بحسب سنوات الوفاة.' },
+    { id: 'ashath', title: 'الأشاعثة الثلاثة', modes: ['ashath', 'ashath-q'], emblem: 'trio', desc: 'ميّز بين الحداني وابن سوار والحمراني.' },
+    { id: 'links', title: 'شيخ وتلميذ', modes: ['match-teacher'], emblem: 'net', desc: 'صل الأعلام بشيوخهم وتلاميذهم.' },
+    { id: 'stances', title: 'مواقف من سير الأعلام', modes: ['stance-who'], emblem: 'lantern', desc: 'تعرّف على العلم من موقفه أو قوله.' },
+    { id: 'fixbio', title: 'صحّح المعلومة', modes: ['spot'], emblem: 'quill', desc: 'في بطاقة العالم معلومة خاطئة: اكتشفها.' },
   ];
 
   // أنواع الجولات في المسابقة الجماعية
   const ROUND_TYPES = {
-    speed:    { title: 'جولة السرعة', timer: 15, multiplier: 1, speedBonus: true, modes: ['work-author', 'cloze', 'teacher', 'quote', 'shelf'] },
-    discover: { title: 'جولة اكتشاف الشخصية', timer: 60, multiplier: 1, modes: ['reveal', 'card'] },
-    order:    { title: 'جولة الترتيب الزمني', timer: 60, multiplier: 1, modes: ['order-death', 'order-event', 'bucket-century'] },
-    link:     { title: 'جولة الربط بين الأعلام', timer: 60, multiplier: 1, modes: ['match-work', 'match-teacher', 'match-event', 'match-stance', 'bucket-madhhab'] },
+    speed:    { title: 'جولة السرعة', timer: 20, multiplier: 1, speedBonus: true, modes: ['stance-who', 'ashath-q', 'mizan-q', 'work-author', 'cloze'] },
+    discover: { title: 'جولة «من أنا؟»', timer: 60, multiplier: 1, modes: ['reveal', 'card'] },
+    order:    { title: 'جولة رحلة عبر الزمن', timer: 60, multiplier: 1, modes: ['order-death', 'order-event', 'bucket-century'] },
+    link:     { title: 'جولة الميزان والربط', timer: 75, multiplier: 1, modes: ['mizan', 'ashath', 'match-teacher', 'match-work'] },
     standard: { title: 'جولة متنوعة', timer: 30, multiplier: 1, modes: '*' },
     final:    { title: 'جولة التحدي النهائي', timer: 45, multiplier: 2, minDifficulty: 2, modes: '*' },
-    risk:     { title: 'جولة المخاطرة بالنقاط', timer: 30, multiplier: 1, risk: true, modes: ['work-author', 'teacher', 'spot', 'cloze', 'decision', 'quote', 'map'] },
+    risk:     { title: 'جولة المخاطرة بالنقاط', timer: 30, multiplier: 1, risk: true, modes: ['spot', 'mizan-q', 'ashath-q', 'stance-who', 'work-author'] },
   };
 
   // المسابقة الكبرى الافتراضية: صعوبة متدرجة
@@ -104,7 +108,7 @@
 
   const CLAIM_KINDS = {
     death: 'سنة الوفاة', birth: 'سنة الولادة', work: 'مؤلَّف', teacher: 'شيخ', place: 'بلد/موطن', madhhab: 'المذهب',
-    event: 'حدث', quote: 'مقولة', stance: 'موقف', trait: 'صفة/مكانة', other: 'أخرى',
+    event: 'حدث', quote: 'مقولة', jarh: 'حكم النقاد', nasab: 'النسب', stance: 'موقف', trait: 'صفة/مكانة', other: 'أخرى',
   };
 
   function modesFor(target) {

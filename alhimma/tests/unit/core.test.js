@@ -8,7 +8,7 @@ const names = require('../../server/names.js');
 const { DB } = require('../../server/db.js');
 const { KB, shamelaUrl } = require('../../server/kb.js');
 const { generate } = require('../../server/generator.js');
-const demo = require('../../server/demo.js');
+const seed = require('../../server/seed.js');
 const { makeXlsx, makeDocx, makePdf, tmpDir } = require('./helpers.js');
 
 test('تطبيع العربية ومفتاح الأسماء والتشابه', () => {
@@ -143,61 +143,55 @@ test('الأسماء: تنظيف، عناوين أقسام، إزالة تكرا
   assert.equal(m[0].personId, 'p1');
 });
 
-test('المولّد: كل سؤال يُصحح بإجابته، والمشتتات منطقية، ولا يستعمل غير المعتمد', () => {
+test('المحتوى المعتمد: عشر شخصيات فقط، وكل سؤال يُصحح بإجابته وموثق بالترجمة', () => {
   const db = new DB(tmpDir());
   const kb = new KB(db);
-  demo.loadDemo(db, kb, generate);
-  assert.ok(db.data.questions.length > 100);
+  assert.ok(seed.applySeed(db));
+  assert.equal(seed.applySeed(db), false, 'لا يُحمّل مرتين');
+  assert.equal(db.data.persons.length, 10);
+  assert.ok(db.data.persons.every((p) => p.tabaqa === 5 && p.status === 'approved'));
+  const ids = new Set(db.data.persons.map((p) => p.id));
   const modes = new Set(db.data.questions.map((q) => q.mode));
-  for (const m of ['work-author', 'reveal', 'card', 'order-death', 'match-work', 'teacher', 'match-teacher', 'bucket-century', 'spot', 'order-event', 'map', 'shelf', 'cloze']) assert.ok(modes.has(m), 'mode ' + m);
-  const deathOf = (pid) => kb.deathYear(pid);
+  for (const m of ['reveal', 'mizan', 'mizan-q', 'order-death', 'ashath', 'ashath-q', 'match-teacher', 'stance-who', 'spot']) assert.ok(modes.has(m), m);
   for (const raw of db.data.questions) {
     const q = Engine.prepare(raw, raw.id);
     const d = q.data;
-    const ans = { choice: d.answer, reveal: { choice: d.answer, used: 1 }, card: { choice: d.answer }, order: q.type === 'order' && Engine.orderKey(q), match: d.key, bucket: d.items && d.items.map((i) => i.bucket), spot: d.wrong }[q.type];
+    const ans = { choice: d.answer, reveal: { choice: d.answer, used: 1 }, order: q.type === 'order' ? Engine.orderKey(q) : null, match: d.key, bucket: d.items && d.items.map((i) => i.bucket), spot: d.wrong }[q.type];
     assert.equal(Engine.grade(q, ans).fraction, 1, raw.prompt);
     if (d.options) assert.equal(new Set(d.options).size, d.options.length, 'خيارات مكررة: ' + raw.prompt);
-    if (raw.mode === 'teacher') {
-      // مشتتات سؤال الشيخ يستحيل زمنيًا أن يكونوا من شيوخه
-      const student = raw.refs.personIds[0];
-      const sy = deathOf(student);
-      for (const opt of raw.data.options.slice(1)) {
-        const p = db.data.persons.find((x) => x.name === opt);
-        const y = deathOf(p.id);
-        assert.ok(y < sy - 120 || y > sy + 60, opt + ' distractor timing');
-      }
+    assert.ok(raw.explanation, 'شرح');
+    assert.ok(raw.refs.personIds.length && raw.refs.personIds.every((x) => ids.has(x)));
+    const cites = kb.questionCitations(raw);
+    assert.ok(cites.length >= 1);
+    for (const c of cites) {
+      assert.match(c.label, /ترجمة .+، «سير أعلام النبلاء» — شمس الدين الذهبي، ج٦، ص[٠-٩]+–[٠-٩]+ \(نطاق الترجمة\)، ط\. مؤسسة الرسالة/);
+      assert.match(c.url, /^https:\/\/shamela\.ws\/book\/10906\/\d+$/);
+      assert.equal(c.urlLabel, 'رابط بداية الترجمة');
     }
+    // لا أسئلة على المعلومات التي تحتاج مراجعة
+    assert.ok(!/ثلاثمائة دينار|القدرية|البخاري|بغداد/.test(raw.prompt + JSON.stringify(raw.data)), 'سؤال على معلومة قيد المراجعة: ' + raw.prompt);
   }
-  // عاصم: روايتان متعارضتان قيد المراجعة ← لا سنة وفاة ثابتة، ويظهر التعارض للمشرف
-  assert.equal(kb.deathYear('demo_asim'), null);
-  assert.ok(kb.conflicts().some((c) => c.personId === 'demo_asim'));
-  // اليرموك (تاريخان) لا تدخل الترتيب الزمني
-  assert.ok(!db.data.questions.some((q) => q.mode === 'order-event' && q.refs.eventIds.includes('demo_ev_yarmuk')));
-  // بعد إخفاء التجريبي لا يبقى شيء قابل للعب
-  db.data.settings.demoInPlay = false;
-  assert.equal(db.data.questions.filter((q) => kb.usable(q)).length, 0);
-  assert.equal(generate(kb, { seed: 1 }).length, 0);
+  // سنة وفاة يونس بن عبيد فيها قولان، ويونس الأيلي تقريبية: لا سنة معتمدة واحدة، ويظهر التعارض للمشرف
+  assert.equal(kb.deathYear('t5_yunusubayd'), null);
+  assert.equal(kb.deathYear('t5_ayli'), null);
+  assert.ok(kb.conflicts().some((c) => c.personId === 't5_yunusubayd'));
+  assert.equal(kb.deathYear('t5_jafar'), 148);
+  // المعلومات قيد المراجعة لا تظهر معلومةً تعليمية
+  for (const q of db.data.questions) { const l = kb.learnFor(q); if (l) assert.ok(!/ثلاثمائة|القدرية|البخاري/.test(l.text)); }
+  // التوليد الآلي من المحتوى: مسودات فقط
+  assert.ok(generate(kb, { seed: 1 }).every((q) => q.status === 'draft'));
 });
 
-test('المولّد: التوليد الجديد مسودة، ولا يكرر سؤالًا موجودًا', () => {
+test('تحميل المحتوى المعتمد يزيل البيانات التجريبية القديمة ويبقي ما أضافه المشرف', () => {
   const db = new DB(tmpDir());
-  const kb = new KB(db);
-  demo.loadDemo(db, kb, generate);
-  const again = generate(kb, { seed: 1446, limitPerMode: 14 });
-  const sigs = new Set(db.data.questions.map((q) => q.signature));
-  assert.ok(again.every((q) => !sigs.has(q.signature)));
-  assert.ok(again.every((q) => q.status === 'draft'));
-});
-
-test('حذف البيانات التجريبية يزيلها كلها ويبقي المصادر المرجعية', () => {
-  const db = new DB(tmpDir());
-  const kb = new KB(db);
-  demo.loadDemo(db, kb, generate);
-  db.insert('persons', { name: 'علم حقيقي', status: 'review' });
-  demo.removeDemo(db);
-  assert.equal(db.data.persons.length, 1);
-  assert.equal(db.data.questions.length, 0);
-  assert.ok(db.data.sources.length > 0);
+  db.insert('persons', { name: 'تجريبي', demo: true });
+  db.insert('persons', { name: 'علم أضافه المشرف', status: 'review' });
+  db.data.sources.push({ id: 'src_ref_0', title: 'مرجع قديم' });
+  seed.applySeed(db);
+  assert.ok(!db.data.persons.some((p) => p.demo));
+  assert.ok(db.data.persons.some((p) => p.name === 'علم أضافه المشرف'));
+  assert.ok(!db.data.sources.some((x) => x.id === 'src_ref_0'));
+  assert.equal(db.data.sources.filter((x) => x.id === 'src_siyar').length, 1);
 });
 
 test('النسخ الاحتياطي: لقطة واستعادة مع نسخة أمان', () => {

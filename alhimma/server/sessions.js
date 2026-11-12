@@ -181,7 +181,7 @@ class SessionManager {
     if (c.q) {
       const q = this.db.get('questions', c.qid);
       c.learn = q ? this.kb.learnFor(q) : null;
-      c.citations = q ? this.kb.citationsFor((q.refs || {}).claimIds) : [];
+      c.citations = q ? this.kb.questionCitations(q) : [];
       if (q) { q.usedCount = (q.usedCount || 0) + 1; this.db.save(); }
     }
     s.phase = 'revealed';

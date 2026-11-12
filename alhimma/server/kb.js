@@ -28,10 +28,13 @@ function citationUrl(c, sourcesById) {
 function formatCitation(c, sourcesById) {
   const s = (c.sourceId && sourcesById[c.sourceId]) || null;
   const parts = [];
+  if (c.personName) parts.push('ترجمة ' + c.personName);
   if (s) parts.push('«' + s.title + '»' + (s.author ? ' — ' + s.author : ''));
   else if (c.title) parts.push('«' + c.title + '»');
   if (c.vol) parts.push('ج' + AR.toArabicDigits(c.vol));
   if (c.page) parts.push('ص' + AR.toArabicDigits(c.page));
+  else if (c.pages) parts.push('ص' + AR.toArabicDigits(c.pages) + (String(c.pages).match(/[–-]/) ? ' (نطاق الترجمة)' : ''));
+  if (s && s.edition) parts.push('ط. ' + s.edition);
   return parts.join('، ');
 }
 
@@ -135,11 +138,29 @@ class KB {
     return this.presentClaim(c, persons, sources);
   }
 
+  presentCitation(x, sources) {
+    if (!sources) sources = this.maps().sources;
+    return { label: formatCitation(x, sources), url: citationUrl(x, sources), urlLabel: x.urlLabel || null, excerpt: x.excerpt || null };
+  }
+
+  /** توثيق السؤال: إحالة صريحة إن وُجدت، وإلا ترجمة كل علم يتناوله السؤال (نطاق صفحاتها ورابط بدايتها) */
+  questionCitations(q) {
+    const { persons, sources } = this.maps();
+    if (q.citations && q.citations.length) return q.citations.map((x) => this.presentCitation(x, sources));
+    const out = [];
+    for (const pid of (q.refs && q.refs.personIds) || []) {
+      const p = persons[pid];
+      for (const x of (p && p.bioCitations) || []) out.push(this.presentCitation({ personName: p.name, ...x }, sources));
+    }
+    if (out.length) return out;
+    return this.citationsFor((q.refs || {}).claimIds);
+  }
+
   presentClaim(c, persons, sources) {
     if (!persons) ({ persons, sources } = this.maps());
     return {
       claimId: c.id, text: claimText(c, persons), demo: !!c.demo,
-      citations: (c.citations || []).map((x) => ({ label: formatCitation(x, sources), url: citationUrl(x, sources), excerpt: x.excerpt || null })),
+      citations: (c.citations || []).map((x) => this.presentCitation(x, sources)),
     };
   }
 
