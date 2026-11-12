@@ -1,0 +1,22 @@
+{
+  "name": "alhimma",
+  "version": "1.0.0",
+  "description": "منصة الهمّة للمسابقات العلمية والتفاعلية",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/unit/*.test.js",
+    "e2e": "node tests/e2e.js"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fontsource/ibm-plex-sans-arabic": "^5.2.5",
+    "@fontsource/noto-kufi-arabic": "^5.2.5",
+    "pdfjs-dist": "^5.4.394",
+    "qrcode-generator": "^1.4.4"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}

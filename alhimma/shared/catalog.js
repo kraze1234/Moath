@@ -1,0 +1,116 @@
+/* كتالوج المنصة: التصنيفات، الفروع، الأنماط، الألعاب، أنواع الجولات — مشترك (UMD)
+ * لإضافة فرع أو لعبة جديدة: أضف عنصرًا هنا، والواجهة والخادم يلتقطانه تلقائيًا. */
+(function (root, factory) {
+  if (typeof module === 'object' && module.exports) module.exports = factory();
+  else root.HimmaCatalog = factory();
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // تصنيفات الأعلام الافتراضية (قابلة للتعديل والإضافة من لوحة الإدارة)
+  const DEFAULT_CATEGORIES = [
+    { id: 'muhaddith', name: 'المحدثون', color: '#c9a24a' },
+    { id: 'faqih', name: 'الفقهاء', color: '#2f7a5b' },
+    { id: 'qaid', name: 'المجاهدون والقادة', color: '#a5483a' },
+    { id: 'zahid', name: 'الزهاد والعباد', color: '#6f7fa8' },
+    { id: 'mufassir', name: 'المفسرون', color: '#8a6d3b' },
+    { id: 'qari', name: 'القراء', color: '#4f8c8c' },
+    { id: 'mawsui', name: 'العلماء الموسوعيون', color: '#7a5c8e' },
+  ];
+
+  // الأنماط = طريقة توليد السؤال وشكله. type = طريقة العرض والتصحيح.
+  const MODES = {
+    'work-author':   { title: 'من صاحب الكتاب؟', type: 'choice', desc: 'يظهر اسم مؤلَّف وتختار مؤلفه.' },
+    'shelf':         { title: 'أمين المكتبة', type: 'choice', style: 'shelf', desc: 'اختر كتاب العالم من رفوف المكتبة.' },
+    'reveal':        { title: 'اكتشف الشخصية', type: 'reveal', desc: 'معلومات تنكشف تدريجيًا، وكلما عرفته أبكر نلت أكثر.' },
+    'card':          { title: 'بطاقة العالم المجهول', type: 'card', desc: 'اكشف أجزاء البطاقة مقابل خصم من النقاط.' },
+    'order-death':   { title: 'سلسلة التراجم', type: 'order', desc: 'رتّب الأعلام بحسب سنة الوفاة من الأقدم.' },
+    'match-work':    { title: 'صل العالم بمؤلَّفه', type: 'match', desc: 'اربط كل عالم بكتابه.' },
+    'teacher':       { title: 'من الشيخ ومن التلميذ؟', type: 'choice', desc: 'علاقة تتلمذ مثبتة في المصادر.' },
+    'match-teacher': { title: 'شبكة العلماء', type: 'match', style: 'network', desc: 'صل كل شيخ بتلميذه.' },
+    'bucket-century':{ title: 'رحلة عبر القرون', type: 'bucket', desc: 'ضع كل عالم في قرنه الهجري.' },
+    'bucket-madhhab':{ title: 'خريطة المدارس الفقهية', type: 'bucket', desc: 'ضع كل فقيه في مدرسته.' },
+    'term':          { title: 'تحدي المصطلحات', type: 'choice', desc: 'المصطلح الفقهي وشرحه من مصدر معتمد.' },
+    'spot':          { title: 'صحّح الترجمة', type: 'spot', desc: 'بطاقة فيها معلومة واحدة خاطئة: اكتشفها.' },
+    'order-event':   { title: 'الخط الزمني للوقائع', type: 'order', desc: 'رتّب الوقائع التاريخية زمنيًا.' },
+    'match-event':   { title: 'اربط القائد بالحدث', type: 'match', desc: 'صل كل قائد بالواقعة التي ارتبط بها.' },
+    'map':           { title: 'خريطة الأحداث', type: 'choice', style: 'map', desc: 'حدّد موقع الواقعة على الخريطة.' },
+    'decision':      { title: 'قرارات القادة', type: 'choice', desc: 'واقعة تاريخية: ما الذي حدث فعلًا؟' },
+    'quote':         { title: 'لمن هذه المقولة؟', type: 'choice', desc: 'مقولة موثقة النسبة: من قائلها؟' },
+    'match-stance':  { title: 'صل الشخصية بموقفها', type: 'match', desc: 'اربط كل شخصية بموقف ثابت عنها.' },
+    'cloze':         { title: 'أكمل المعلومة', type: 'choice', desc: 'معلومة ناقصة: أكملها.' },
+    'lesson':        { title: 'الدرس المستفاد', type: 'choice', desc: 'ما الدرس الذي يُستفاد من الموقف؟' },
+    'excerpt':       { title: 'الباحث الصغير', type: 'choice', desc: 'استخرج الإجابة من مقتطف علمي موثق.' },
+  };
+
+  const BRANCHES = [
+    {
+      id: 'hadith', title: 'فرسان الحديث', category: 'muhaddith', emblem: 'ink', accent: '#c9a24a',
+      tagline: 'استكشف المحدثين ومؤلفاتهم ومناهجهم',
+      modes: ['work-author', 'reveal', 'order-death', 'match-work', 'teacher', 'card'],
+    },
+    {
+      id: 'fiqh', title: 'مجالس الفقه', category: 'faqih', emblem: 'scale', accent: '#2f7a5b',
+      tagline: 'الفقهاء ومؤلفاتهم ومذاهبهم وعصورهم',
+      modes: ['match-work', 'order-death', 'reveal', 'bucket-madhhab', 'teacher', 'term'],
+    },
+    {
+      id: 'leaders', title: 'ميادين العزيمة', category: 'qaid', emblem: 'banner', accent: '#a5483a',
+      tagline: 'القادة والوقائع بطابع تاريخي تعليمي',
+      modes: ['reveal', 'order-event', 'match-event', 'map', 'decision', 'card'],
+    },
+    {
+      id: 'zuhd', title: 'مدارج الهمّة', category: 'zahid', emblem: 'lantern', accent: '#6f7fa8',
+      tagline: 'سير الزهاد ومواقفهم وأقوالهم الثابتة',
+      modes: ['quote', 'reveal', 'match-stance', 'cloze', 'order-death', 'lesson'],
+    },
+  ];
+
+  // الألعاب الإضافية — تعمل عبر كل التصنيفات
+  const GAMES = [
+    { id: 'whoami', title: 'من أنا؟', modes: ['reveal'], emblem: 'mask', desc: 'بطاقة مخفية تنكشف معلومة بعد معلومة.' },
+    { id: 'timeline', title: 'الخط الزمني', modes: ['order-death', 'order-event'], emblem: 'line', desc: 'اسحب البطاقات ورتّبها بحسب الوفاة الهجرية.' },
+    { id: 'network', title: 'شبكة العلماء', modes: ['match-teacher', 'teacher'], emblem: 'net', desc: 'اربط الشيوخ بتلاميذهم بعلاقات موثقة.' },
+    { id: 'librarian', title: 'أمين المكتبة', modes: ['shelf', 'work-author'], emblem: 'shelf', desc: 'اختر الكتاب الصحيح من رفوف المكتبة.' },
+    { id: 'researcher', title: 'الباحث الصغير', modes: ['excerpt'], emblem: 'lens', desc: 'اقرأ المقتطف الموثق واستخرج الإجابة.' },
+    { id: 'fixbio', title: 'صحّح الترجمة', modes: ['spot'], emblem: 'quill', desc: 'معلومة واحدة خاطئة في البطاقة.' },
+    { id: 'centuries', title: 'رحلة عبر القرون', modes: ['bucket-century'], emblem: 'hourglass', desc: 'ضع كل عالم في قرنه.' },
+    { id: 'encyclopedia', title: 'الموسوعة المفقودة', modes: '*', emblem: 'book', desc: 'حلّ التحديات لتجمع صفحات الموسوعة.', pages: 8 },
+  ];
+
+  // أنواع الجولات في المسابقة الجماعية
+  const ROUND_TYPES = {
+    speed:    { title: 'جولة السرعة', timer: 15, multiplier: 1, speedBonus: true, modes: ['work-author', 'cloze', 'teacher', 'quote', 'shelf'] },
+    discover: { title: 'جولة اكتشاف الشخصية', timer: 60, multiplier: 1, modes: ['reveal', 'card'] },
+    order:    { title: 'جولة الترتيب الزمني', timer: 60, multiplier: 1, modes: ['order-death', 'order-event', 'bucket-century'] },
+    link:     { title: 'جولة الربط بين الأعلام', timer: 60, multiplier: 1, modes: ['match-work', 'match-teacher', 'match-event', 'match-stance', 'bucket-madhhab'] },
+    standard: { title: 'جولة متنوعة', timer: 30, multiplier: 1, modes: '*' },
+    final:    { title: 'جولة التحدي النهائي', timer: 45, multiplier: 2, minDifficulty: 2, modes: '*' },
+    risk:     { title: 'جولة المخاطرة بالنقاط', timer: 30, multiplier: 1, risk: true, modes: ['work-author', 'teacher', 'spot', 'cloze', 'decision', 'quote', 'map'] },
+  };
+
+  // المسابقة الكبرى الافتراضية: صعوبة متدرجة
+  const GRAND_PLAN = [
+    { type: 'speed', count: 5, difficulty: [1] },
+    { type: 'discover', count: 3, difficulty: [1, 2] },
+    { type: 'order', count: 3, difficulty: [1, 2] },
+    { type: 'link', count: 3, difficulty: [2] },
+    { type: 'risk', count: 3, difficulty: [2, 3] },
+    { type: 'final', count: 3, difficulty: [3] },
+  ];
+
+  const DIFFICULTY = { 1: { name: 'سهل', points: 100 }, 2: { name: 'متوسط', points: 200 }, 3: { name: 'صعب', points: 300 } };
+
+  const STATUS = { draft: 'مسودة', review: 'قيد المراجعة', approved: 'معتمد', rejected: 'مرفوض' };
+
+  const CLAIM_KINDS = {
+    death: 'سنة الوفاة', birth: 'سنة الولادة', work: 'مؤلَّف', teacher: 'شيخ', place: 'بلد/موطن', madhhab: 'المذهب',
+    event: 'حدث', quote: 'مقولة', stance: 'موقف', trait: 'صفة/مكانة', other: 'أخرى',
+  };
+
+  function modesFor(target) {
+    if (target === '*' || !target) return Object.keys(MODES);
+    return target;
+  }
+
+  return { DEFAULT_CATEGORIES, MODES, BRANCHES, GAMES, ROUND_TYPES, GRAND_PLAN, DIFFICULTY, STATUS, CLAIM_KINDS, modesFor };
+});
